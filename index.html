@@ -265,7 +265,7 @@ $('picker').onchange = async e => {
     say(nota);
   } catch(err){
     console.error(err);
-    say('No se pudieron guardar las fotos. Revisa tu conexión e inténtalo de nuevo.');
+    say('No se pudieron guardar las fotos: ' + (err && err.message ? err.message : 'error de conexión'));
   } finally {
     $('change').disabled = false;
   }
@@ -302,7 +302,7 @@ new ResizeObserver(() => {
     else say('');
   } catch(err){
     console.error(err);
-    say('No se pudo cargar el álbum. Revisa tu conexión.');
+    say('No se pudo cargar el álbum: ' + (err && err.message ? err.message : 'error de conexión'));
   }
 })();
 </script>
