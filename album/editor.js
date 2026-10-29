@@ -4,6 +4,9 @@
 const W = 800, H = 1100, PAPEL = '#E9E6FF';          // lienzo lógico: misma proporción que la página
 const COLORES = ['#09120B', '#273C2C', '#82204A', '#690313', '#8FB339', '#E9E6FF'];
 const FW = 360, FH = 480, IMW = 320, IMH = 400;       // marco de foto (polaroid)
+/* Fuente del texto que se escribe dentro de las hojas.
+   Debe llamarse igual que en el enlace de Google Fonts de index.html (y tener peso 700 cargado). */
+const FUENTE = 'Inconsolata';
 const $e = id => document.getElementById(id);
 
 /* ---------- Interfaz ---------- */
@@ -11,7 +14,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 #ed{position:fixed;inset:0;z-index:50;background:var(--noche);display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 #ed[hidden],#ed-panel[hidden]{display:none}
 .ed-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px}
-.ed-hoja{display:flex;align-items:center;gap:8px;font:700 1.4rem 'Inconsolata',cursive}
+.ed-hoja{display:flex;align-items:center;gap:8px;font:700 1.4rem '${FUENTE}',cursive}
 button.sm{padding:6px 14px}
 #ed-stage{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:none}
 .ed-sel,.ed-bar{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;padding:6px 10px}
@@ -85,7 +88,7 @@ async function nodoFoto(o){
 function centrar(t){ t.offsetX(t.width() / 2); t.offsetY(t.height() / 2); }
 function nodoTexto(o){
   const t = new Konva.Text({ x: o.x, y: o.y, rotation: o.r || 0, scaleX: o.sx || 1, scaleY: o.sy || o.sx || 1,
-    text: o.text, fontFamily: 'Inconsolata', fontStyle: 'bold', fontSize: o.size || 64, fill: o.fill || '#09120B',
+    text: o.text, fontFamily: FUENTE, fontStyle: 'bold', fontSize: o.size || 64, fill: o.fill || '#09120B',
     width: o.w || 520, align: 'center', draggable: true });
   t.setAttrs({ tipo: 'texto' });
   centrar(t);
@@ -173,7 +176,7 @@ async function cargarHoja(n){
   iniciarLienzo();
   cerrarPanel();
   msg('Cargando…');
-  try { await document.fonts.load('700 64px Inconsolata'); } catch(e){}
+  try { await document.fonts.load(`700 64px "${FUENTE}"`); } catch(e){}
   for (const o of (layouts[h] || porDefecto(h))){
     try { agregar(await crear(o)); } catch(e){ console.warn(e); }
   }
