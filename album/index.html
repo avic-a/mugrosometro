@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Recuerdos</title>
+<title>Memorias</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 <style>
 :root{
   --noche:#09120B; --pino:#273C2C; --frambuesa:#82204A;
   --lavanda:#E9E6FF; --musgo:#8FB339; --vino:#690313;
   --sombra-lomo:rgba(39,60,44,.28);
+  --tapa:#2E8B3D;            /* verde vivo de la tapa */
   --lavanda-oscura:#B9B3DE; --gris-lavanda:#7A7596;
 }
 *{box-sizing:border-box}
@@ -23,7 +24,7 @@ body{
   display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 6px}
-header h1{font:700 1.7rem/1 'Caveat',cursive;margin:0}
+header h1{font:700 1.7rem/1 'Inconsolata';margin:0}
 .count{font-size:.85rem;opacity:.75}
 #stage{flex:1;min-height:0;width:100%;overflow:visible;display:flex;align-items:center;justify-content:center}
 #book{flex:none}
@@ -40,7 +41,7 @@ button:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
 .page.l{background:linear-gradient(to left,var(--sombra-lomo),transparent 9%),var(--lavanda)}
 .page.r{background:linear-gradient(to right,var(--sombra-lomo),transparent 9%),var(--lavanda)}
 .sheet{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9% 9% 10%}
-.num{position:absolute;bottom:3.5%;font:500 1.05rem 'Caveat',cursive;color:var(--gris-lavanda)}
+.num{position:absolute;bottom:3.5%;font:500 1.05rem 'Inconsolata';color:var(--gris-lavanda)}
 .l .num{left:9%}.r .num{right:9%}
 
 /* acomodo según cuántas fotos tenga la hoja */
@@ -65,7 +66,7 @@ button:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
 .vacia{
   flex:1;width:100%;border:2px dashed var(--lavanda-oscura);border-radius:6px;
   display:flex;align-items:center;justify-content:center;text-align:center;
-  font:500 1.25rem/1.2 'Caveat',cursive;color:var(--gris-lavanda);padding:12%;
+  font:500 1.25rem/1.2 'Inconsolata';color:var(--gris-lavanda);padding:12%;
 }
 
 .page.render img{display:block;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
@@ -74,7 +75,7 @@ button:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
 .page.r.render::after{background:linear-gradient(to right,var(--sombra-lomo),transparent 9%)}
 
 /* ---- tapas (color plano) ---- */
-.page.hard{background:var(--pino)}
+.page.hard{background:var(--tapa)}
 .cover .sheet{color:var(--lavanda);text-align:center;gap:18px}
 .cover::after{
   content:"";position:absolute;top:0;right:12%;width:9%;height:32%;background:var(--vino);
@@ -88,8 +89,8 @@ button:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
   content:"";position:absolute;top:-12px;left:50%;width:38%;height:22px;
   background:var(--frambuesa);opacity:.9;transform:translateX(-50%) rotate(3deg);
 }
-.etiqueta b{display:block;font:700 2.3rem/1 'Caveat',cursive}
-.cover p{font:500 1.15rem/1.25 'Caveat',cursive;max-width:16ch;margin:0;opacity:.92}
+.etiqueta b{display:block;font:700 2.3rem/1 'Inconsolata',cursive}
+.cover p{font:500 1.15rem/1.25 'Inconsolata',cursive;max-width:16ch;margin:0;opacity:.92}
 
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
@@ -97,7 +98,7 @@ button:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
 <body>
 
 <header>
-  <h1>Recuerdos</h1>
+  <h1>Memorias</h1>
   <span class="count" id="count"></span>
 </header>
 
@@ -130,7 +131,15 @@ let flip = null, sb = null, code = '', total = 0;
 let pool = [], renders = {}, layouts = {}, hasLayout = false;   // fotos, hojas ya editadas, elementos de cada hoja
 
 /* ---------- Código del álbum (va en el enlace: #codigo) ---------- */
+/* Pega aquí el código de TU álbum (lo que va después del # en la URL donde ya subiste las fotos).
+   Con esto, el álbum es el mismo en cualquier celular o computadora, sin importar el enlace. */
+const CODIGO_FIJO = '6156d9ad1ffe48b6';
+
 function getCode(){
+  if (/^[a-z0-9]{8,40}$/i.test(CODIGO_FIJO)){
+    history.replaceState(null, '', '#' + CODIGO_FIJO);
+    return { c: CODIGO_FIJO, nuevo: false };
+  }
   let c = location.hash.slice(1), nuevo = false;
   if (!/^[a-z0-9]{8,40}$/i.test(c)){
     try { c = localStorage.getItem('recuerdos-code') || ''; } catch(e){ c = ''; }
@@ -231,7 +240,7 @@ function build(groups, pagina = 0){
   const pages = [];
   pages.push(`<div class="page hard cover" data-density="hard"><div class="sheet">
       <div class="etiqueta"><b>Recuerdos</b></div>
-      <p>Que siempre puedas navegar el mundo sabiéndote querido.</p></div></div>`);
+      <p>Lo que fue, y lo que falta.</p></div></div>`);
   pages.push(`<div class="page l"></div>`);
 
   for (let h = 0; h < HOJAS; h++){
@@ -241,7 +250,7 @@ function build(groups, pagina = 0){
       `<div class="polaroid" style="--rot:${ROT[(h * 2 + k) % ROT.length]}deg"><img src="${u}" alt="Hoja ${h + 1}, foto ${k + 1}" draggable="false" crossorigin="anonymous"></div>`).join('');
     const body = fotos.length
       ? `<div class="hoja n${fotos.length}">${celdas}</div>`
-      : `<div class="vacia">Aquí van hasta ${POR_HOJA} fotos</div>`;
+      : `<div class="vacia">Aquí van ${POR_HOJA} fotos</div>`;
     if (renders[h + 1]) pages.push(`<div class="page ${lado} render"><img src="${renders[h + 1]}" alt="Hoja ${h + 1}" draggable="false" crossorigin="anonymous"></div>`);
     else pages.push(`<div class="page ${lado}"><div class="sheet">${body}</div><span class="num">${h + 1}</span></div>`);
   }
