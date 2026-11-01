@@ -1,1 +1,291 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chinche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noche:#09120B; --pino:#273C2C; --frambuesa:#82204A;
+  --lavanda:#E9E6FF; --musgo:#8FB339; --vino:#690313;
+  --manuscrita:'Caveat',cursive;           /* cambia aquí la fuente de los mensajes */
+  --texto:'Nunito',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  height:100vh;height:100dvh;display:flex;flex-direction:column;
+  color:var(--lavanda);font-family:var(--texto);
+  background:
+    radial-gradient(60% 45% at 50% 42%,rgba(130,32,74,.5),transparent 72%),
+    radial-gradient(120% 80% at 50% 0%,#12200f 0%,var(--noche) 62%);
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  overflow:hidden;
+}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 4px;gap:12px}
+header h1{font:700 1.7rem/1 var(--manuscrita);margin:0}
+button{font:700 .9rem var(--texto);color:var(--noche);background:var(--lavanda);border:0;border-radius:999px;padding:10px 16px;min-height:44px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
+#coleccion{display:flex;align-items:center;gap:10px}
+#puntos{display:flex;gap:4px}
+#puntos i{width:8px;height:8px;border-radius:50%;background:rgba(9,18,11,.25)}
+#puntos i.on{background:var(--musgo);box-shadow:0 0 0 1.5px var(--noche)}
+#cuenta.pop{animation:pop .5s}
+@keyframes pop{40%{transform:scale(1.35)}}
+
+#visor{flex:1;min-height:0;position:relative}
+#aviso{
+  position:absolute;top:10px;left:50%;transform:translate(-50%,-14px);opacity:0;pointer-events:none;
+  background:var(--musgo);color:var(--noche);font-weight:700;font-size:.9rem;
+  padding:8px 16px;border-radius:999px;white-space:nowrap;transition:opacity .35s,transform .35s;z-index:2
+}
+#aviso.on{opacity:1;transform:translate(-50%,0)}
+#error{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;opacity:.85}
+
+.carta{
+  position:relative;margin:6px 16px 16px;padding:22px 20px 18px;border-radius:4px;
+  background:var(--lavanda);color:var(--noche);text-align:center;
+  height:9.5rem;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.45);transform:rotate(-.6deg);
+}
+.carta::before{
+  content:"";position:absolute;top:-11px;left:50%;width:90px;height:22px;
+  background:var(--frambuesa);opacity:.88;transform:translateX(-50%) rotate(3deg);
+}
+.carta p{margin:0;font:600 1.7rem/1.15 var(--manuscrita);overflow:auto;max-height:100%}
+.carta.nueva p{animation:entra .5s ease-out}
+.carta.brillo{box-shadow:0 0 0 3px var(--musgo),0 0 36px rgba(143,179,57,.65)}
+.carta.amor{box-shadow:0 0 0 3px #c25c8a,0 0 36px rgba(194,92,138,.6)}
+@keyframes entra{from{opacity:0;transform:translateY(10px) scale(.97)}}
+@media (prefers-reduced-motion:reduce){.carta.nueva p,#cuenta.pop{animation:none}#aviso{transition:none}}
+@media (min-width:700px){.carta{max-width:560px;margin-left:auto;margin-right:auto;width:100%}}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+dialog{background:var(--lavanda);color:var(--noche);border:0;border-radius:10px;width:min(92vw,440px);padding:20px;font-family:var(--texto)}
+dialog::backdrop{background:rgba(9,18,11,.72)}
+dialog h2{margin:0 0 4px;font:700 1.8rem/1 var(--manuscrita)}
+dialog ul{list-style:none;margin:12px 0;padding:0;display:grid;gap:10px}
+dialog li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:.92rem;line-height:1.3}
+dialog li b{display:block}
+dialog li small{opacity:.7}
+dialog li .m{width:18px;height:18px;border-radius:50%;background:#cfcbe6;margin-top:2px}
+dialog li.on .m{background:var(--musgo);box-shadow:0 0 0 2px var(--pino)}
+dialog button{background:var(--pino);color:var(--lavanda)}
+#nota{font-size:.8rem;opacity:.8;margin:0 16px 4px;text-align:center;min-height:1.1em}
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+
+<header>
+  <h1>Chinche</h1>
+  <button id="coleccion" aria-label="Ver secretos descubiertos">
+    Secretos <b id="cuenta">0/9</b><span id="puntos" aria-hidden="true"></span>
+  </button>
+</header>
+
+<div id="visor" role="img" aria-label="Una chinche verde flotando y girando">
+  <div id="aviso" role="status"></div>
+</div>
+
+<div id="nota"></div>
+<section class="carta" id="carta" aria-live="polite"><p id="texto">Toca a la chinche</p></section>
+<button class="sr" id="tocar">Tocar a la chinche</button>
+
+<dialog id="lista">
+  <h2>Secretos</h2>
+  <ul id="items"></ul>
+  <button id="cerrar">Cerrar</button>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script type="module">
+import { crearVisor } from '../assets/js/visor3d.js';
+import { SUPABASE_URL, SUPABASE_KEY, BUCKET, CODIGO } from '../assets/js/config.js';
+import { AJUSTES, MENSAJES, SECRETOS, HITOS, HORAS, QUINCENA, ANIVERSARIO } from './mensajes.js';
+
+const $ = id => document.getElementById(id);
+const IDS = Object.keys(SECRETOS);
+const pad = n => String(n).padStart(2, '0');
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const barajar = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- Mensajes normales (bolsa sin repetición) ---------- */
+const TODOS = Object.entries(MENSAJES).flatMap(([cat, l]) => l.map((texto, i) => ({ id: `${cat}${i}`, texto })));
+const porId = new Map(TODOS.map(m => [m.id, m.texto]));
+
+/* ---------- Estado (se guarda en el celular y en Supabase) ---------- */
+const vacio = () => ({ v: 1, toques: 0, secretos: {}, bolsa: [], diaEspecial: '' });
+let estado = vacio();
+try { estado = { ...vacio(), ...JSON.parse(localStorage.getItem('chinche-estado') || '{}') }; } catch(e){}
+
+function fusionar(a, b){
+  if (!b) return a;
+  const r = { ...a, toques: Math.max(a.toques || 0, b.toques || 0), secretos: { ...(b.secretos || {}) } };
+  for (const id in (a.secretos || {})) if (!r.secretos[id] || a.secretos[id] < r.secretos[id]) r.secretos[id] = a.secretos[id];
+  r.diaEspecial = (a.diaEspecial || '') > (b.diaEspecial || '') ? a.diaEspecial : (b.diaEspecial || '');
+  r.bolsa = (b.toques || 0) > (a.toques || 0) ? (b.bolsa || []) : (a.bolsa || []);
+  return r;
+}
+
+const conectado = !SUPABASE_URL.startsWith('PEGA');
+const sb = conectado && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const store = sb ? sb.storage.from(BUCKET) : null;
+const ruta = `chinche/${CODIGO}/estado.json`;   // carpeta aparte: "Cambiar fotos" del álbum no la toca
+
+async function cargarRemoto(){
+  if (!store) return null;
+  try {
+    const { data } = await store.list(`chinche/${CODIGO}`, { search: 'estado.json' });
+    if (!data || !data.some(f => f.name === 'estado.json')) return null;
+    const r = await fetch(store.getPublicUrl(ruta).data.publicUrl + '?t=' + Date.now());
+    return r.ok ? await r.json() : null;
+  } catch(e){ return null; }
+}
+let temp;
+function guardarLocal(){ try { localStorage.setItem('chinche-estado', JSON.stringify(estado)); } catch(e){} }
+async function guardarRemoto(){
+  if (!store) return;
+  try {
+    estado = fusionar(estado, await cargarRemoto());
+    guardarLocal(); pintarCuenta();
+    const { error } = await store.upload(ruta, new Blob([JSON.stringify(estado)], { type: 'application/json' }),
+      { contentType: 'application/json', upsert: true, cacheControl: '0' });
+    if (error) throw error;
+  } catch(e){ console.warn('No se pudo guardar en Supabase:', e); }
+}
+function guardarPronto(){ guardarLocal(); clearTimeout(temp); temp = setTimeout(guardarRemoto, 800); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) guardarRemoto(); });
+
+/* ---------- Cuenta de secretos ---------- */
+$('puntos').innerHTML = IDS.map(() => '<i></i>').join('');
+function pintarCuenta(){
+  const n = IDS.filter(id => estado.secretos[id]).length;
+  $('cuenta').textContent = `${n}/${IDS.length}`;
+  [...$('puntos').children].forEach((p, i) => p.classList.toggle('on', !!estado.secretos[IDS[i]]));
+}
+function registrar(id){
+  if (!id || !SECRETOS[id] || estado.secretos[id]) return false;
+  estado.secretos[id] = new Date().toISOString();
+  return true;
+}
+let tAviso;
+function avisar(t){
+  const a = $('aviso'); a.textContent = '✦ Secreto descubierto: ' + t; a.classList.add('on');
+  clearTimeout(tAviso); tAviso = setTimeout(() => a.classList.remove('on'), 4200);
+  const c = $('cuenta'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+}
+
+/* ---------- Qué responde la chinche ---------- */
+function siguienteDeBolsa(){
+  let ids = (estado.bolsa || []).filter(id => porId.has(id));
+  if (!ids.length) ids = barajar(TODOS.map(m => m.id));
+  const id = ids.pop();
+  estado.bolsa = ids;
+  return porId.get(id);
+}
+const fechaLocal = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+let recientes = [], rafaga = 0, ultimo = 0, bloqueo = 0;
+
+function procesarToque(){
+  const ahora = new Date(), ms = ahora.getTime();
+  estado.toques++;
+  recientes = recientes.filter(t => ms - t < AJUSTES.insistenteSeg * 1000); recientes.push(ms);
+  rafaga = (ultimo && ms - ultimo <= AJUSTES.rafagaMs) ? rafaga + 1 : 1; ultimo = ms;
+
+  // 1) Primer toque de un día 15 (el 15 de mayo, aniversario)
+  const hoy = fechaLocal(ahora);
+  if (ahora.getDate() === QUINCENA.dia && estado.diaEspecial !== hoy){
+    estado.diaEspecial = hoy;
+    const aniv = ahora.getMonth() + 1 === ANIVERSARIO.mes && ahora.getDate() === ANIVERSARIO.dia;
+    return { id: 'quincena', texto: aniv ? ANIVERSARIO.mensaje : QUINCENA.mensaje, amor: aniv };
+  }
+  // 2) Horas secretas (11:11, medianoche, 4:44 pm)
+  const hhmm = `${pad(ahora.getHours())}:${pad(ahora.getMinutes())}`;
+  for (const h of HORAS) if (h.horas.includes(hhmm)) return { id: h.id, texto: pick(SECRETOS[h.id].mensajes), brillo: true };
+  // 3) Pregunta 100, y comentarios en la 10 y la 50
+  if (estado.toques === 100) return { id: 'cien', texto: pick(SECRETOS.cien.mensajes), brillo: true };
+  if (HITOS[estado.toques]) return { id: null, texto: HITOS[estado.toques] };
+  // 4) Ráfaga de toques rápidos
+  if (rafaga >= AJUSTES.rafagaToques){ rafaga = 0; return { id: 'rafaga', texto: pick(SECRETOS.rafaga.mensajes), brillo: true }; }
+  // 5) Insistir varias veces en menos de un minuto
+  if (recientes.length >= AJUSTES.insistenteToques && ms > bloqueo){
+    bloqueo = ms + AJUSTES.insistenteSeg * 1000; recientes = [];
+    return { id: 'insistente', texto: pick(SECRETOS.insistente.mensajes), mareo: true };
+  }
+  // 6) Mensaje brillante al azar
+  if (Math.random() < AJUSTES.probDorado) return { id: 'dorado', texto: pick(SECRETOS.dorado.mensajes), brillo: true };
+  // 7) Mensaje normal
+  return { id: null, texto: siguienteDeBolsa() };
+}
+
+/* ---------- Mostrar ---------- */
+let visor = null;
+function mostrar(r){
+  const carta = $('carta');
+  carta.className = 'carta'; void carta.offsetWidth;
+  carta.classList.add('nueva');
+  if (r.amor) carta.classList.add('amor'); else if (r.brillo) carta.classList.add('brillo');
+  $('texto').textContent = r.texto;
+  const nuevo = registrar(r.id);
+  if (visor){
+    if (r.mareo) visor.mareo(1.6);
+    if (r.amor) visor.brillo('#E58AB0', 4);
+    else if (nuevo || r.brillo) visor.brillo('#C9F26B', 3);
+  }
+  if (nuevo) avisar(SECRETOS[r.id].titulo);
+  pintarCuenta();
+  guardarPronto();
+}
+function tocar(){
+  if (visor) visor.agitar();
+  mostrar(procesarToque());
+}
+function mantener(){
+  if (visor) visor.agitar(0.5);
+  mostrar({ id: 'mantener', texto: pick(SECRETOS.mantener.mensajes), brillo: true });
+}
+$('tocar').onclick = tocar;
+
+/* ---------- Lista de secretos ---------- */
+$('coleccion').onclick = () => {
+  $('items').innerHTML = IDS.map(id => {
+    const s = SECRETOS[id], f = estado.secretos[id];
+    return f
+      ? `<li class="on"><span class="m"></span><span><b>${s.titulo}</b><small>Descubierto el ${new Date(f).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}</small></span></li>`
+      : `<li><span class="m"></span><span><b>???</b><small>${s.pista}</small></span></li>`;
+  }).join('');
+  $('lista').showModal();
+};
+$('cerrar').onclick = () => $('lista').close();
+$('lista').addEventListener('click', e => { if (e.target === $('lista')) $('lista').close(); });
+
+/* ---------- Inicio ---------- */
+pintarCuenta();
+if (!conectado) $('nota').textContent = 'Sin conexión a Supabase: los secretos solo se guardan en este dispositivo.';
+(async () => {
+  try {
+    visor = await crearVisor($('visor'), '../assets/modelos/Chinche.glb', { msMantener: AJUSTES.mantenerMs });
+    visor.onTocar(tocar);
+    visor.onMantener(mantener);
+  } catch(e){
+    console.error(e);
+    $('visor').insertAdjacentHTML('beforeend', '<div id="error">No se pudo cargar el modelo 3D. Toca aquí para ver igual los mensajes.</div>');
+    $('visor').onclick = tocar;
+  }
+  const remoto = await cargarRemoto();
+  if (remoto){ estado = fusionar(estado, remoto); guardarLocal(); pintarCuenta(); }
+})();
+</script>
+</body>
+</html>
 
