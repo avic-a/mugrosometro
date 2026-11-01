@@ -10,6 +10,9 @@ export const AJUSTES = {
   probDorado: 1 / 15       // probabilidad del mensaje brillante en cada toque
 };
 
+/* Pregunta que aparece arriba del mensaje en el cuadro de código. */
+export const PREGUNTA = "¿Qué quieres saber hoy?";
+
 /* Mensajes normales: salen en orden aleatorio y no se repiten hasta que se acaban todos. */
 export const MENSAJES = {
   carino: [
