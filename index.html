@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -144,7 +143,6 @@
 
 <div id="lightbox" aria-modal="true" role="dialog"><img alt=""></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 /* ============ CONFIGURACIÓN: cambia estos valores ============ */
 const SUPABASE_URL = "https://qczetywfmcusmwuzwjrz.supabase.co";
@@ -154,7 +152,7 @@ const TABLA = "fotos";       // tabla con columnas: id, path, width, height, cre
 const MAX_LADO = 1600;       // las fotos se reducen a este tamaño antes de subirse
 /* ============================================================== */
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const H = { apikey: SUPABASE_ANON_KEY };
 
 const $ = (id) => document.getElementById(id);
 const viewport = $("viewport"), stage = $("stage"), grid = $("grid");
@@ -162,7 +160,7 @@ const vistas = new Set();
 
 /* ---------- Render ---------- */
 function urlDe(path) {
-  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
 }
 function rotacion(id) {
   let h = 0;
@@ -189,17 +187,24 @@ function actualizarConteo() {
   $("contador").textContent = n ? n + (n === 1 ? " foto" : " fotos") : "";
   $("vacio").style.display = n ? "none" : "grid";
 }
+async function mensajeError(r) {
+  try { const j = await r.json(); return j.message || j.error || r.statusText; } catch { return r.statusText; }
+}
+async function listar() {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}?select=*&order=created_at.desc`, { headers: H });
+  if (!r.ok) throw new Error(await mensajeError(r));
+  return r.json();
+}
 async function cargar() {
-  const { data, error } = await sb.from(TABLA).select("*").order("created_at", { ascending: false });
-  if (error) { aviso("No se pudieron cargar las fotos: " + error.message, 6000); return; }
-  data.forEach((f) => agregar(f));
+  try { (await listar()).forEach((f) => agregar(f)); }
+  catch (e) { aviso("No se pudieron cargar las fotos: " + e.message, 8000); }
   actualizarConteo();
   requestAnimationFrame(ajustarVista);
+  // Revisa cada 8 segundos si hay fotos nuevas de otras personas
+  setInterval(async () => {
+    try { (await listar()).reverse().forEach((f) => agregar(f, { nueva: true, alInicio: true })); } catch {}
+  }, 8000);
 }
-sb.channel("fotos-nuevas")
-  .on("postgres_changes", { event: "INSERT", schema: "public", table: TABLA },
-      (p) => agregar(p.new, { nueva: true, alInicio: true }))
-  .subscribe();
 
 /* ---------- Zoom y desplazamiento ---------- */
 let escala = 1, tx = 0, ty = 0;
@@ -310,23 +315,31 @@ $("archivos").onchange = async (e) => {
   e.target.value = "";
   if (!archivos.length) return;
   $("btnSubir").disabled = true;
-  let ok = 0, fallos = 0;
+  let ok = 0, fallos = 0, ultimoError = "";
   for (let i = 0; i < archivos.length; i++) {
     aviso(`Subiendo ${i + 1} de ${archivos.length}…`);
     try {
       const { blob, w, h } = await reducir(archivos[i]);
       const path = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
-      const up = await sb.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg" });
-      if (up.error) throw up.error;
-      const ins = await sb.from(TABLA).insert({ path, width: w, height: h });
-      if (ins.error) throw ins.error;
+      const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
+        method: "POST", headers: { ...H, "Content-Type": "image/jpeg" }, body: blob
+      });
+      if (!up.ok) throw new Error(await mensajeError(up));
+      const ins = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}`, {
+        method: "POST",
+        headers: { ...H, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({ path, width: w, height: h })
+      });
+      if (!ins.ok) throw new Error(await mensajeError(ins));
+      const [fila] = await ins.json();
+      agregar(fila, { nueva: true, alInicio: true });
       ok++;
     } catch (err) {
-      console.error(err); fallos++;
+      console.error(err); fallos++; ultimoError = err.message || String(err);
     }
   }
   $("btnSubir").disabled = false;
-  aviso(fallos ? `${ok} subidas, ${fallos} con error` : `Listo: ${ok} ${ok === 1 ? "foto subida" : "fotos subidas"}`, 4000);
+  aviso(fallos ? `${ok} subidas, ${fallos} con error: ${ultimoError}` : `Listo: ${ok} ${ok === 1 ? "foto subida" : "fotos subidas"}`, fallos ? 12000 : 4000);
 };
 
 cargar();
