@@ -20,7 +20,8 @@ function textura(stops){
 }
 
 export async function crearVisor(contenedor, url, opciones = {}){
-  const o = { tamano: 2.4, giro: 0.35, flota: 0.07, msMantener: 700, ...opciones };
+  const o = { tamano: 2.4, giro: 0.35, flota: 0.07, msMantener: 700, radio: 1.95, alturaCam: 0.15,
+              ajusteModelo: { x: 0, y: 0, z: 0 }, ...opciones };   // ajusteModelo: gira el modelo si viene acostado
   const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducir){ o.giro *= 0.3; o.flota *= 0.3; }
 
@@ -49,6 +50,7 @@ export async function crearVisor(contenedor, url, opciones = {}){
     if (!n.isMesh) return;
     (Array.isArray(n.material) ? n.material : [n.material]).forEach(m => { m.flatShading = true; m.needsUpdate = true; });
   });
+  modelo.rotation.set(o.ajusteModelo.x, o.ajusteModelo.y, o.ajusteModelo.z);
   const caja = new THREE.Box3().setFromObject(modelo);
   const tam = caja.getSize(new THREE.Vector3());
   const centro = caja.getCenter(new THREE.Vector3());
@@ -116,9 +118,9 @@ export async function crearVisor(contenedor, url, opciones = {}){
     cam.aspect = w / h;
     const fv = THREE.MathUtils.degToRad(cam.fov);
     const fh = 2 * Math.atan(Math.tan(fv / 2) * cam.aspect);
-    const r = 1.95;
+    const r = o.radio;
     const d = Math.max(r / Math.sin(fv / 2), r / Math.sin(fh / 2)) * 1.03;
-    cam.position.set(0, medio + d * 0.15, d);
+    cam.position.set(0, medio + d * o.alturaCam, d);
     cam.lookAt(0, medio, 0);
     cam.updateProjectionMatrix();
   }
@@ -127,12 +129,15 @@ export async function crearVisor(contenedor, url, opciones = {}){
   ajustar();
 
   /* Efectos que se pueden disparar desde la página */
-  let agit = 0, marea = 0, haloExtra = 0, haloDur = 1;
+  let agit = 0, marea = 0, haloExtra = 0, haloDur = 1, salto = 0;
   const colorBase = new THREE.Color(0xE9E6FF);
   const api = {
     agitar(f = 1){ agit = Math.max(agit, f); },
     mareo(seg = 1.5){ marea = seg; agit = Math.max(agit, 0.6); },
     brillo(color = '#C9F26B', seg = 2.5){ halo.material.color.set(color); haloExtra = seg; haloDur = seg; },
+    saltar(){ salto = 1; },
+    alCuadro(fn){ api._cuadro = fn; },
+    THREE, escena, flota, pivote, yTope,
     onTocar(fn){ api._tocar = fn; },
     onMantener(fn){ api._mantener = fn; },
     destruir(){ cancelAnimationFrame(raf); observador.disconnect(); renderer.dispose(); dom.remove(); }
@@ -174,7 +179,8 @@ export async function crearVisor(contenedor, url, opciones = {}){
     marea = Math.max(0, marea - dt);
 
     const s = Math.sin(t * 1.5);
-    flota.position.y = s * o.flota;
+    salto = Math.max(0, salto - dt * 1.6);
+    flota.position.y = s * o.flota + (salto > 0 ? Math.sin(Math.PI * (1 - salto)) * 0.7 : 0);
     sombra.scale.setScalar(1 - s * 0.08);
     sombra.material.opacity = 0.9 - s * 0.1;
 
@@ -197,6 +203,7 @@ export async function crearVisor(contenedor, url, opciones = {}){
       }
       geoP.attributes.position.needsUpdate = true;
     }
+    api._cuadro && api._cuadro(dt, t);
     renderer.render(escena, cam);
     raf = requestAnimationFrame(cuadro);
   }
