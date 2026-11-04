@@ -3,95 +3,95 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Perrito</title>
+<title>Cinéfilos y mugrosos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;700&family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --noche:#09120B; --pino:#273C2C; --frambuesa:#82204A; --lavanda:#E9E6FF; --musgo:#8FB339; --vino:#690313;
-  --manuscrita:'Caveat',cursive; --texto:'Nunito',system-ui,sans-serif; --codigo:'Inconsolata',ui-monospace,monospace;
+  --texto:'Inconsolata',ui-monospace,monospace; --manuscrita:var(--texto); --codigo:var(--texto);
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{
-  height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;
-  color:var(--lavanda);font-family:var(--texto);
-  background:radial-gradient(60% 45% at 50% 46%,rgba(130,32,74,.42),transparent 72%),radial-gradient(120% 80% at 50% 0%,#12200f 0%,var(--noche) 62%);
+  height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;overflow:hidden;
+  color:var(--lavanda);font-family:var(--texto);font-size:18px;
+  background:radial-gradient(60% 45% at 50% 40%,rgba(130,32,74,.42),transparent 72%),radial-gradient(120% 80% at 50% 0%,#12200f 0%,var(--noche) 62%);
   padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
 }
-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 2px;gap:12px}
-header h1{font:700 1.7rem/1 var(--manuscrita);margin:0}
-button{font:700 .9rem var(--texto);color:var(--noche);background:var(--lavanda);border:0;border-radius:999px;padding:10px 16px;min-height:44px;cursor:pointer}
+header{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px 4px;text-align:center}
+header h1{font:700 1.55rem/1.1 var(--texto);margin:0;letter-spacing:.01em}
+button{font:700 1.05rem var(--texto);color:var(--noche);background:var(--lavanda);border:0;border-radius:999px;padding:12px 20px;min-height:52px;cursor:pointer}
 button.main{background:var(--musgo)}
 button.ghost{background:transparent;color:var(--lavanda);border:1.5px solid rgba(233,230,255,.4)}
 button:disabled{opacity:.5;cursor:default}
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
-#quienBtn{padding:8px 14px;min-height:38px;font-size:.82rem}
+#quienBtn{padding:7px 16px;min-height:40px;font-size:.95rem}
 
-/* cuadro de código (igual que la chinche) */
-.carta{margin:8px 16px 2px;border-radius:10px;background:#0E1B12;border:1px solid rgba(233,230,255,.18);box-shadow:0 8px 22px rgba(0,0,0,.45);font-family:var(--codigo);overflow:hidden}
-.carta .barra{display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(233,230,255,.07);font-size:.85rem}
-.carta .barra i{width:10px;height:10px;border-radius:50%}
+/* cuadro de código */
+.carta{width:calc(100% - 24px);max-width:680px;margin:8px 12px 2px;border-radius:10px;background:#0E1B12;border:1px solid rgba(233,230,255,.18);box-shadow:0 8px 22px rgba(0,0,0,.45);font-family:var(--texto);overflow:hidden}
+.carta .barra{display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(233,230,255,.07);font-size:.9rem}
+.carta .barra i{width:11px;height:11px;border-radius:50%}
 .carta .barra i:nth-child(1){background:var(--frambuesa)}.carta .barra i:nth-child(2){background:var(--musgo)}.carta .barra i:nth-child(3){background:var(--lavanda)}
 .carta .barra span{margin-left:6px;opacity:.7}
-.cuerpo{padding:10px 14px 12px;height:6.6rem;overflow:auto;font-size:1.2rem;line-height:1.3}
+.cuerpo{padding:10px 14px 12px;height:7.4rem;overflow:auto;font-size:1.3rem;line-height:1.3;text-align:left}
 .pregunta{color:var(--musgo);margin:0 0 4px}
 .respuesta{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .respuesta::after{content:"";display:inline-block;width:.55em;height:1.05em;background:var(--lavanda);vertical-align:-.15em;margin-left:2px;animation:parpadeo 1s steps(1) infinite}
 @keyframes parpadeo{50%{opacity:0}}
 .carta.brillo{border-color:var(--musgo);box-shadow:0 0 0 1px var(--musgo),0 0 30px rgba(143,179,57,.5)}
 @media (prefers-reduced-motion:reduce){.respuesta::after{animation:none}}
-@media (min-width:700px){.carta{max-width:640px;width:calc(100% - 32px);margin-left:auto;margin-right:auto}}
 
-#chips{display:flex;gap:6px;overflow-x:auto;padding:8px 16px 2px;scrollbar-width:none;align-items:center}
-#chips::-webkit-scrollbar{display:none}
-.chip{flex:none;background:transparent;color:var(--lavanda);border:1.5px solid rgba(233,230,255,.4);padding:5px 12px;min-height:34px;font-size:.85rem}
-.chip.on{background:var(--musgo);color:var(--noche);border-color:var(--musgo)}
-#cuenta{flex:none;font-size:.8rem;opacity:.7;margin-left:6px;white-space:nowrap}
-
-#visor{flex:1;min-height:0;position:relative}
+#visor{flex:1;min-height:0;width:100%;position:relative}
 #error{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;opacity:.85}
-footer{display:flex;gap:10px;justify-content:center;padding:6px 12px 14px}
-footer button{flex:1;max-width:190px}
-#nota{font-size:.78rem;text-align:center;opacity:.8;min-height:1.1em;padding:0 16px}
+
+#chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:4px 14px 2px;max-width:680px}
+.chip{background:transparent;color:var(--lavanda);border:1.5px solid rgba(233,230,255,.4);padding:6px 14px;min-height:42px;font-size:1rem}
+.chip.on{background:var(--musgo);color:var(--noche);border-color:var(--musgo)}
+#cuenta{flex-basis:100%;text-align:center;font-size:.9rem;opacity:.75}
+#nota{font-size:.85rem;text-align:center;opacity:.8;min-height:1.2em;padding:0 16px}
+footer{display:flex;gap:10px;justify-content:center;width:100%;max-width:680px;padding:6px 12px 16px}
+footer button{flex:1;min-height:58px;font-size:1.1rem}
 
 /* ventanas */
-dialog{background:var(--lavanda);color:var(--noche);border:0;border-radius:12px;width:min(94vw,560px);max-height:88dvh;padding:18px;font-family:var(--texto);overflow:auto}
+dialog{background:var(--lavanda);color:var(--noche);border:0;border-radius:12px;width:min(94vw,580px);max-height:88dvh;padding:18px;font-family:var(--texto);font-size:1.05rem;overflow:auto}
 dialog::backdrop{background:rgba(9,18,11,.75)}
-dialog h2{margin:0 0 4px;font:700 1.9rem/1 var(--manuscrita)}
-dialog h3{margin:14px 0 6px;font:700 1.3rem/1 var(--manuscrita)}
+dialog h2{margin:0 0 6px;font:700 1.5rem/1.1 var(--texto)}
+dialog h3{margin:14px 0 6px;font:700 1.2rem/1.1 var(--texto)}
 dialog button{background:var(--pino);color:var(--lavanda)}
 dialog button.main{background:var(--musgo);color:var(--noche)}
 dialog button.ghost{background:transparent;color:var(--pino);border-color:rgba(39,60,44,.45)}
 dialog .chip{color:var(--pino);border-color:rgba(39,60,44,.4);background:transparent}
 dialog .chip.on{background:var(--musgo);color:var(--noche);border-color:var(--musgo)}
-dialog input,dialog textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid rgba(39,60,44,.4);border-radius:8px;background:#fff;color:var(--noche)}
-.det{display:grid;grid-template-columns:112px 1fr;gap:12px}
+dialog input,dialog textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid rgba(39,60,44,.4);border-radius:8px;background:#fff;color:var(--noche)}
+.det{display:grid;grid-template-columns:112px 1fr;gap:12px;text-align:left}
 .pos{width:112px;border-radius:6px;display:block;background:var(--pino)}
-.pos.sin{aspect-ratio:2/3;display:grid;place-items:center;padding:8px;color:var(--lavanda);text-align:center;font-size:.85rem}
-.meta{margin:2px 0 8px;font-size:.85rem;opacity:.75}
-.sinop{font-size:.92rem;line-height:1.4;margin:10px 0}
-.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.aviso{background:rgba(143,179,57,.25);padding:8px 10px;border-radius:8px;font-size:.9rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.aviso button{min-height:36px;padding:6px 12px}
-.voto{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(39,60,44,.08)}
-.hueso{background:none!important;padding:2px 3px;min-height:36px;font-size:1.4rem;opacity:.28;filter:grayscale(1)}
+.pos.sin{aspect-ratio:2/3;display:grid;place-items:center;padding:8px;color:var(--lavanda);text-align:center;font-size:.9rem}
+.meta{margin:2px 0 8px;font-size:.95rem;opacity:.75}
+.sinop{font-size:1rem;line-height:1.4;margin:10px 0;text-align:left}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center}
+.aviso{background:rgba(143,179,57,.25);padding:8px 10px;border-radius:8px;font-size:1rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.aviso button{min-height:40px;padding:6px 14px}
+.voto{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(39,60,44,.08);text-align:left}
+.hueso{background:none!important;padding:2px 3px;min-height:40px;font-size:1.5rem;opacity:.28;filter:grayscale(1)}
 .hueso.on{opacity:1;filter:none}
 .hueso:disabled{opacity:.28}.hueso.on:disabled{opacity:1}
-.coment{margin:4px 0 0;font-size:.9rem}.dim{opacity:.6}
-.tabs{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap}
+.coment{margin:4px 0 0;font-size:1rem}.dim{opacity:.6}
+.tabs{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap;justify-content:center}
 .tabs .chip b{font-weight:700;opacity:.7}
-#filas{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+#filas{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;text-align:left}
 #filas li,#res li{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;padding:6px;border-radius:8px;cursor:pointer;background:rgba(39,60,44,.07)}
 #filas li:hover,#res li:hover{background:rgba(39,60,44,.15)}
+#res{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;text-align:left}
 #filas img,#res img,.mini{width:44px;height:66px;object-fit:cover;border-radius:4px;background:var(--pino);display:block}
 .mini{display:grid;place-items:center;color:var(--lavanda);font-size:.6rem;padding:2px;text-align:center;overflow:hidden}
-.fila b{display:block;font-size:.95rem;line-height:1.15}
-.fila small{opacity:.7}
-.tmdb{font-size:.72rem;opacity:.65;margin:12px 0 0;line-height:1.3}
+.fila b{display:block;font-size:1rem;line-height:1.15}
+.fila small{opacity:.7;font-size:.88rem}
+.tmdb{font-size:.8rem;opacity:.65;margin:12px 0 0;line-height:1.3;text-align:center}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.quien button{display:block;width:100%;margin:10px 0;font-size:1.05rem;padding:14px}
+.quien{text-align:center}
+.quien button{display:block;width:100%;margin:10px 0;font-size:1.15rem;padding:14px}
 </style>
 <script type="importmap">
 { "imports": {
@@ -103,7 +103,7 @@ dialog input,dialog textarea{width:100%;font:inherit;padding:10px 12px;border:1.
 <body>
 
 <header>
-  <h1>Perrito</h1>
+  <h1>cinéfilos y mugrosos</h1>
   <button class="ghost" id="quienBtn" aria-label="Cambiar quién eres">Eres: <b id="yoNombre">…</b></button>
 </header>
 
@@ -116,9 +116,9 @@ dialog input,dialog textarea{width:100%;font:inherit;padding:10px 12px;border:1.
 </section>
 <div id="sr" class="sr" aria-live="polite"></div>
 
-<div id="chips" role="group" aria-label="Filtrar por ánimo"></div>
-
 <div id="visor" role="img" aria-label="Un perrito flotando con un carrete de películas alrededor"></div>
+
+<div id="chips" role="group" aria-label="Filtrar por ánimo"></div>
 <div id="nota"></div>
 
 <footer>
@@ -303,10 +303,8 @@ function escribir(texto, brillo){
 /* ================= Carrete 3D ================= */
 let visor = null, anillo = null, girando = false;
 function crearAnillo(v){
-  const T = v.THREE, R = 3.3, CW = 1.0, CH = 1.5, N_MIN = 8;
-  const base3 = new T.Group(); base3.position.y = v.yTope; v.escena.add(base3);
-  const pista = new T.Mesh(new T.RingGeometry(R - 0.95, R + 0.95, 64), new T.MeshBasicMaterial({ color: 0xE9E6FF, transparent: true, opacity: 0.07, side: T.DoubleSide }));
-  pista.rotation.x = -Math.PI / 2; pista.position.y = 0.01; base3.add(pista);
+  const T = v.THREE, R = 2.0, CW = 1.07, CH = 1.6;   // radio del carrete y tamaño de cada tarjeta (proporción 2:3)
+  const base3 = new T.Group(); base3.position.y = -v.alto / 2 - 0.6; v.escena.add(base3);   // las tarjetas nacen bajo el pecho del perrito
   const rueda = new T.Group(); base3.add(rueda);
   const cargador = new T.TextureLoader(); cargador.setCrossOrigin('anonymous');
   const cache = new Map();
@@ -317,13 +315,13 @@ function crearAnillo(v){
     const g = c.getContext('2d');
     g.fillStyle = colores[i % colores.length]; g.fillRect(0, 0, 256, 384);
     g.strokeStyle = 'rgba(233,230,255,.5)'; g.lineWidth = 4; g.strokeRect(14, 14, 228, 356);
-    g.fillStyle = '#E9E6FF'; g.textAlign = 'center'; g.font = 'bold 30px Nunito, sans-serif';
+    g.fillStyle = '#E9E6FF'; g.textAlign = 'center'; g.font = 'bold 34px Inconsolata, monospace';
     const pal = p.titulo.split(' '); const lineas = []; let l = '';
-    pal.forEach(w => { if ((l + ' ' + w).trim().length > 14){ lineas.push(l); l = w; } else l = (l + ' ' + w).trim(); });
+    pal.forEach(w => { if ((l + ' ' + w).trim().length > 12){ lineas.push(l); l = w; } else l = (l + ' ' + w).trim(); });
     lineas.push(l);
-    const y0 = 192 - (lineas.length - 1) * 20;
-    lineas.slice(0, 6).forEach((x, k) => g.fillText(x, 128, y0 + k * 40));
-    if (p.anio){ g.font = '22px Nunito, sans-serif'; g.fillText(p.anio, 128, 350); }
+    const y0 = 192 - (lineas.length - 1) * 21;
+    lineas.slice(0, 6).forEach((x, k) => g.fillText(x, 128, y0 + k * 42));
+    if (p.anio){ g.font = '24px Inconsolata, monospace'; g.fillText(p.anio, 128, 350); }
     const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t;
   }
   const dorso = (() => {
@@ -369,12 +367,12 @@ function crearAnillo(v){
       const p = Math.min(1, (performance.now() - giro.t0) / giro.dur), e = 1 - Math.pow(1 - p, 4);
       rueda.rotation.y = giro.desde + (giro.hasta - giro.desde) * e;
       if (p >= 1){ const f = giro.fin; ganador = tarjetas[giro.w]; pop = 0; giro = null; f(); }
-    } else if (!ganador && !reducir){ rueda.rotation.y -= 0.12 * dt; }
+    } else if (!ganador && !reducir){ rueda.rotation.y -= 0.18 * dt; }
     if (ganador){
       pop = Math.min(1, pop + dt * 2.5);
-      const k = 1 + 0.17 * pop;
-      ganador.g.position.set(ganador.bx * k, ganador.by + 0.3 * pop, ganador.bz * k);
-      ganador.g.scale.setScalar(1 + 0.35 * pop);
+      const k = 1 + 0.06 * pop;
+      ganador.g.position.set(ganador.bx * k, ganador.by + 0.05 * pop, ganador.bz * k);
+      ganador.g.scale.setScalar(1 + 0.12 * pop);
     }
   });
   return { montar, girarA };
@@ -384,14 +382,14 @@ function crearAnillo(v){
 let filtro = '', excluidas = new Set();
 const poolActual = () => pendientes().filter(p => !filtro || p.tags.includes(filtro)).filter(p => !excluidas.has(p.id));
 function muestraBase(pool, ganadora){
-  let m = pool.length <= 14 ? barajar(pool) : barajar([ganadora, ...barajar(pool.filter(x => x !== ganadora)).slice(0, 13)].filter(Boolean));
+  let m = pool.length <= 8 ? barajar(pool) : barajar([ganadora, ...barajar(pool.filter(x => x !== ganadora)).slice(0, 7)].filter(Boolean));
   while (m.length < 8 && pool.length) m = m.concat(barajar(pool));
   return m;
 }
 function armarInactivo(){
   if (!anillo || girando) return;
   const pool = poolActual();
-  anillo.montar(muestraBase(pool, null).slice(0, 14));
+  anillo.montar(muestraBase(pool, null).slice(0, 8));
 }
 async function girar(){
   if (girando) return;
@@ -402,10 +400,10 @@ async function girar(){
   const ganadora = pick(pool);
   const m = muestraBase(pool, ganadora);
   const idx = m.indexOf(ganadora);
-  if (visor) visor.agitar(0.5);
+  if (visor) visor.agitar(1);
   escribir('Olfateando el carrete…');
   if (anillo){ anillo.montar(m); await anillo.girarA(idx); }
-  if (visor){ visor.saltar(); visor.brillo('#C9F26B', 3); }
+  if (visor){ visor.saltar(); visor.vueltaRapida(1000); visor.brillo('#C9F26B', 3); }
   escribir(pick(['¡Guau! Hoy toca: ', 'Mi nariz dice: ', 'Olfateé esta: ']) + `${ganadora.titulo}${ganadora.anio ? ' (' + ganadora.anio + ')' : ''}`, true);
   girando = false; $('girar').disabled = false;
   abrirDetalle(ganadora.id, 'resultado');
@@ -417,7 +415,7 @@ function pintar(){
   $('yoNombre').textContent = yo ? PERSONAS[yo] : '¿quién?';
   $('chips').innerHTML = `<button class="chip ${filtro ? '' : 'on'}" data-m="">Cualquiera</button>` +
     MOODS.map(m => `<button class="chip ${filtro === m.id ? 'on' : ''}" data-m="${m.id}">${m.t}</button>`).join('') +
-    `<span id="cuenta">${poolActual().length} en el carrete</span>`;
+    `<span id="cuenta">${poolActual().length} pendientes${filtro ? ' con ese ánimo' : ''}</span>`;
   if ($('lista').open) pintarLista();
   armarInactivo();
 }
@@ -579,9 +577,10 @@ if (!conectado) $('nota').textContent = 'Sin Supabase: la lista solo se guarda e
   }
   try {
     visor = await crearVisor($('visor'), '../assets/modelos/pewito.glb', {
-      radio: 4.7, alturaCam: 0.3, tamano: 2.4, giro: 0.25
-      /* Si el perrito se ve acostado o de lado, descomenta y ajusta (en radianes):
-         ajusteModelo: { x: Math.PI / 2, y: 0, z: 0 } */
+      tamano: 2.4, giro: 0, flota: 0.05,          // sin giro: flota de frente
+      pedestal: false, radio: 1.6, medio: -0.3,   // radio: qué tan cerca se ve (más chico = más grande)
+      alturaCam: -0.2, inclinacion: 0.12,         // cámara por debajo, mirando hacia arriba
+      ajusteModelo: { x: 0, y: Math.PI, z: 0 }    // el modelo viene de espaldas: se gira 180° para ver su cara
     });
     anillo = crearAnillo(visor);
     visor.onTocar(girar);
@@ -609,4 +608,3 @@ document.addEventListener('visibilitychange', async () => {
 </script>
 </body>
 </html>
-
