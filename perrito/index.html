@@ -1,1 +1,612 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perrito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;700&family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noche:#09120B; --pino:#273C2C; --frambuesa:#82204A; --lavanda:#E9E6FF; --musgo:#8FB339; --vino:#690313;
+  --manuscrita:'Caveat',cursive; --texto:'Nunito',system-ui,sans-serif; --codigo:'Inconsolata',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;
+  color:var(--lavanda);font-family:var(--texto);
+  background:radial-gradient(60% 45% at 50% 46%,rgba(130,32,74,.42),transparent 72%),radial-gradient(120% 80% at 50% 0%,#12200f 0%,var(--noche) 62%);
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 2px;gap:12px}
+header h1{font:700 1.7rem/1 var(--manuscrita);margin:0}
+button{font:700 .9rem var(--texto);color:var(--noche);background:var(--lavanda);border:0;border-radius:999px;padding:10px 16px;min-height:44px;cursor:pointer}
+button.main{background:var(--musgo)}
+button.ghost{background:transparent;color:var(--lavanda);border:1.5px solid rgba(233,230,255,.4)}
+button:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--lavanda);outline-offset:2px}
+#quienBtn{padding:8px 14px;min-height:38px;font-size:.82rem}
+
+/* cuadro de código (igual que la chinche) */
+.carta{margin:8px 16px 2px;border-radius:10px;background:#0E1B12;border:1px solid rgba(233,230,255,.18);box-shadow:0 8px 22px rgba(0,0,0,.45);font-family:var(--codigo);overflow:hidden}
+.carta .barra{display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(233,230,255,.07);font-size:.85rem}
+.carta .barra i{width:10px;height:10px;border-radius:50%}
+.carta .barra i:nth-child(1){background:var(--frambuesa)}.carta .barra i:nth-child(2){background:var(--musgo)}.carta .barra i:nth-child(3){background:var(--lavanda)}
+.carta .barra span{margin-left:6px;opacity:.7}
+.cuerpo{padding:10px 14px 12px;height:6.6rem;overflow:auto;font-size:1.2rem;line-height:1.3}
+.pregunta{color:var(--musgo);margin:0 0 4px}
+.respuesta{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.respuesta::after{content:"";display:inline-block;width:.55em;height:1.05em;background:var(--lavanda);vertical-align:-.15em;margin-left:2px;animation:parpadeo 1s steps(1) infinite}
+@keyframes parpadeo{50%{opacity:0}}
+.carta.brillo{border-color:var(--musgo);box-shadow:0 0 0 1px var(--musgo),0 0 30px rgba(143,179,57,.5)}
+@media (prefers-reduced-motion:reduce){.respuesta::after{animation:none}}
+@media (min-width:700px){.carta{max-width:640px;width:calc(100% - 32px);margin-left:auto;margin-right:auto}}
+
+#chips{display:flex;gap:6px;overflow-x:auto;padding:8px 16px 2px;scrollbar-width:none;align-items:center}
+#chips::-webkit-scrollbar{display:none}
+.chip{flex:none;background:transparent;color:var(--lavanda);border:1.5px solid rgba(233,230,255,.4);padding:5px 12px;min-height:34px;font-size:.85rem}
+.chip.on{background:var(--musgo);color:var(--noche);border-color:var(--musgo)}
+#cuenta{flex:none;font-size:.8rem;opacity:.7;margin-left:6px;white-space:nowrap}
+
+#visor{flex:1;min-height:0;position:relative}
+#error{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;opacity:.85}
+footer{display:flex;gap:10px;justify-content:center;padding:6px 12px 14px}
+footer button{flex:1;max-width:190px}
+#nota{font-size:.78rem;text-align:center;opacity:.8;min-height:1.1em;padding:0 16px}
+
+/* ventanas */
+dialog{background:var(--lavanda);color:var(--noche);border:0;border-radius:12px;width:min(94vw,560px);max-height:88dvh;padding:18px;font-family:var(--texto);overflow:auto}
+dialog::backdrop{background:rgba(9,18,11,.75)}
+dialog h2{margin:0 0 4px;font:700 1.9rem/1 var(--manuscrita)}
+dialog h3{margin:14px 0 6px;font:700 1.3rem/1 var(--manuscrita)}
+dialog button{background:var(--pino);color:var(--lavanda)}
+dialog button.main{background:var(--musgo);color:var(--noche)}
+dialog button.ghost{background:transparent;color:var(--pino);border-color:rgba(39,60,44,.45)}
+dialog .chip{color:var(--pino);border-color:rgba(39,60,44,.4);background:transparent}
+dialog .chip.on{background:var(--musgo);color:var(--noche);border-color:var(--musgo)}
+dialog input,dialog textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid rgba(39,60,44,.4);border-radius:8px;background:#fff;color:var(--noche)}
+.det{display:grid;grid-template-columns:112px 1fr;gap:12px}
+.pos{width:112px;border-radius:6px;display:block;background:var(--pino)}
+.pos.sin{aspect-ratio:2/3;display:grid;place-items:center;padding:8px;color:var(--lavanda);text-align:center;font-size:.85rem}
+.meta{margin:2px 0 8px;font-size:.85rem;opacity:.75}
+.sinop{font-size:.92rem;line-height:1.4;margin:10px 0}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.aviso{background:rgba(143,179,57,.25);padding:8px 10px;border-radius:8px;font-size:.9rem;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.aviso button{min-height:36px;padding:6px 12px}
+.voto{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(39,60,44,.08)}
+.hueso{background:none!important;padding:2px 3px;min-height:36px;font-size:1.4rem;opacity:.28;filter:grayscale(1)}
+.hueso.on{opacity:1;filter:none}
+.hueso:disabled{opacity:.28}.hueso.on:disabled{opacity:1}
+.coment{margin:4px 0 0;font-size:.9rem}.dim{opacity:.6}
+.tabs{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap}
+.tabs .chip b{font-weight:700;opacity:.7}
+#filas{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+#filas li,#res li{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;padding:6px;border-radius:8px;cursor:pointer;background:rgba(39,60,44,.07)}
+#filas li:hover,#res li:hover{background:rgba(39,60,44,.15)}
+#filas img,#res img,.mini{width:44px;height:66px;object-fit:cover;border-radius:4px;background:var(--pino);display:block}
+.mini{display:grid;place-items:center;color:var(--lavanda);font-size:.6rem;padding:2px;text-align:center;overflow:hidden}
+.fila b{display:block;font-size:.95rem;line-height:1.15}
+.fila small{opacity:.7}
+.tmdb{font-size:.72rem;opacity:.65;margin:12px 0 0;line-height:1.3}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.quien button{display:block;width:100%;margin:10px 0;font-size:1.05rem;padding:14px}
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+
+<header>
+  <h1>Perrito</h1>
+  <button class="ghost" id="quienBtn" aria-label="Cambiar quién eres">Eres: <b id="yoNombre">…</b></button>
+</header>
+
+<section class="carta" id="carta">
+  <div class="barra"><i></i><i></i><i></i><span>carrete.txt</span></div>
+  <div class="cuerpo">
+    <p class="pregunta" id="pregunta"></p>
+    <p class="respuesta" id="texto"></p>
+  </div>
+</section>
+<div id="sr" class="sr" aria-live="polite"></div>
+
+<div id="chips" role="group" aria-label="Filtrar por ánimo"></div>
+
+<div id="visor" role="img" aria-label="Un perrito flotando con un carrete de películas alrededor"></div>
+<div id="nota"></div>
+
+<footer>
+  <button class="ghost" id="abrirLista">Lista</button>
+  <button class="main" id="girar">Girar</button>
+  <button class="ghost" id="abrirAgr">+ Agregar</button>
+</footer>
+<button class="sr" id="girarSr">Girar el carrete</button>
+
+<dialog id="quien" class="quien">
+  <h2>¿Quién eres?</h2>
+  <p>Así se guarda quién propone y quién califica cada película.</p>
+  <button id="q-chinche">chinche hedionda</button>
+  <button id="q-perrito">perrito mugroso</button>
+</dialog>
+
+<dialog id="detalle" aria-label="Detalle de la película"></dialog>
+
+<dialog id="lista">
+  <h2>Películas</h2>
+  <div class="tabs" id="tabs"></div>
+  <input id="busca" placeholder="Buscar en la lista…" autocomplete="off" aria-label="Buscar en la lista">
+  <ul id="filas"></ul>
+  <div class="acciones"><button class="ghost" data-cerrar>Cerrar</button></div>
+  <p class="tmdb">Datos e imágenes de películas: TMDB. Esta página usa la API de TMDB pero no está avalada ni certificada por TMDB.</p>
+</dialog>
+
+<dialog id="agregar">
+  <h2 id="tAgr">Agregar película</h2>
+  <input id="q" placeholder="Escribe el título…" autocomplete="off" aria-label="Título">
+  <ul id="res"></ul>
+  <div class="acciones">
+    <button id="manual" class="ghost">Agregar a mano con este título</button>
+    <button class="ghost" data-cerrar>Cerrar</button>
+  </div>
+  <p class="tmdb" id="tmdbNota"></p>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script type="module">
+import { crearVisor } from '../assets/js/visor3d.js';
+import { SUPABASE_URL, SUPABASE_KEY, BUCKET, CODIGO, TMDB_KEY } from '../assets/js/config.js';
+import { PERSONAS, PREGUNTA, MOODS, GENERO_A_MOOD, INICIALES } from './peliculas.js';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const barajar = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pad = n => String(n).padStart(2, '0');
+const hoyStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const IMG = 'https://image.tmdb.org/t/p/';
+
+/* ================= Estado ================= */
+const vacio = () => ({ v: 1, reinicio: 0, peliculas: {}, vetos: {}, hoy: null });
+let estado = vacio();
+try { estado = { ...vacio(), ...JSON.parse(localStorage.getItem('perrito-estado') || '{}') }; } catch(e){}
+let yo = ''; try { yo = localStorage.getItem('perrito-yo') || ''; } catch(e){}
+if (!PERSONAS[yo]) yo = '';
+
+const base = titulo => ({ titulo, q: titulo, yq: '', tmdb: null, poster: null, anio: '', duracion: 0, sinopsis: '', tags: [],
+  por: yo, vista: false, fechaVista: '', votos: {}, confirmada: true, intentado: true, borrada: false, mod: Date.now() });
+
+function fusionar(a, b){
+  if (!b) return a;
+  const ra = a.reinicio || 0, rb = b.reinicio || 0;
+  if (ra !== rb) return ra > rb ? a : b;
+  const r = { ...a, peliculas: { ...(b.peliculas || {}) }, vetos: { ...(b.vetos || {}) } };
+  for (const id in a.peliculas){ const x = a.peliculas[id], y = r.peliculas[id]; if (!y || x.mod >= y.mod) r.peliculas[id] = x; }
+  for (const f in a.vetos) r.vetos[f] = { ...(r.vetos[f] || {}), ...a.vetos[f] };
+  r.hoy = ((a.hoy && a.hoy.mod) || 0) >= ((b.hoy && b.hoy.mod) || 0) ? a.hoy : b.hoy;
+  return r;
+}
+function sembrar(){
+  INICIALES.forEach((e, i) => {
+    const [t, y] = Array.isArray(e) ? e : [e, ''];
+    const id = 'i' + String(i + 1).padStart(3, '0');
+    if (estado.peliculas[id]) return;
+    estado.peliculas[id] = { ...base(t), id, yq: y, por: '', mod: 1, intentado: false, confirmada: false };
+  });
+}
+const vivas = () => Object.values(estado.peliculas).filter(p => !p.borrada);
+const pendientes = () => vivas().filter(p => !p.vista);
+
+/* ================= Supabase ================= */
+const conectado = !SUPABASE_URL.startsWith('PEGA');
+const sb = conectado && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const store = sb ? sb.storage.from(BUCKET) : null;
+const ruta = `perrito/${CODIGO}/estado.json`;
+async function cargarRemoto(){
+  if (!store) return null;
+  try {
+    const { data } = await store.list(`perrito/${CODIGO}`, { search: 'estado.json' });
+    if (!data || !data.some(f => f.name === 'estado.json')) return null;
+    const r = await fetch(store.getPublicUrl(ruta).data.publicUrl + '?t=' + Date.now());
+    return r.ok ? await r.json() : null;
+  } catch(e){ return null; }
+}
+const guardarLocal = () => { try { localStorage.setItem('perrito-estado', JSON.stringify(estado)); } catch(e){} };
+async function subir(){
+  const { error } = await store.upload(ruta, new Blob([JSON.stringify(estado)], { type: 'application/json' }),
+    { contentType: 'application/json', upsert: true, cacheControl: '0' });
+  if (error) throw error;
+}
+let temp;
+async function guardarRemoto(){
+  if (!store) return;
+  try { estado = fusionar(estado, await cargarRemoto()); guardarLocal(); await subir(); }
+  catch(e){ console.warn('No se pudo guardar en Supabase:', e); }
+}
+function guardarPronto(){ guardarLocal(); clearTimeout(temp); temp = setTimeout(guardarRemoto, 900); }
+const tocarItem = p => { p.mod = Date.now(); guardarPronto(); pintar(); };
+
+/* ================= TMDB ================= */
+const TMDB_ON = !!TMDB_KEY && !TMDB_KEY.startsWith('PEGA');
+let claveMala = false;
+async function tmdb(path, params = {}){
+  const u = new URL('https://api.themoviedb.org/3' + path);
+  u.searchParams.set('language', 'es-MX');
+  Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
+  const h = {};
+  if (TMDB_KEY.startsWith('eyJ')) h.Authorization = 'Bearer ' + TMDB_KEY; else u.searchParams.set('api_key', TMDB_KEY);
+  const r = await fetch(u, { headers: h });
+  if (r.status === 401){ claveMala = true; throw new Error('TMDB 401'); }
+  if (!r.ok) throw new Error('TMDB ' + r.status);
+  return r.json();
+}
+const buscar = async q => (await tmdb('/search/multi', { query: q, include_adult: 'false' })).results.filter(x => x.media_type === 'movie' || x.media_type === 'tv');
+const anioDe = r => (r.release_date || r.first_air_date || '').slice(0, 4);
+function mejor(res, y){
+  if (y){ const m = res.find(r => anioDe(r) === String(y)); if (m) return m; }
+  return res[0];
+}
+function aplicar(it, r){
+  it.tmdb = { id: r.id, tipo: r.media_type };
+  it.titulo = r.title || r.name || it.titulo;
+  it.anio = anioDe(r); it.poster = r.poster_path || null; it.sinopsis = r.overview || ''; it.duracion = 0;
+  if (!it.tags.length) it.tags = [...new Set((r.genre_ids || []).map(g => GENERO_A_MOOD[g]).filter(Boolean))];
+  it.mod = Date.now();
+}
+async function cargarDetalle(p){
+  if (!TMDB_ON || !p.tmdb || p.duracion) return;
+  try {
+    const d = await tmdb(`/${p.tmdb.tipo}/${p.tmdb.id}`);
+    p.duracion = d.runtime || (d.episode_run_time && d.episode_run_time[0]) || 0;
+    if (p.duracion){ p.mod = Date.now(); guardarPronto(); }
+  } catch(e){}
+}
+async function vincularPendientes(){
+  if (!TMDB_ON) return;
+  const cola = vivas().filter(p => !p.tmdb && !p.intentado);
+  if (!cola.length) return;
+  const total = cola.length; let hechas = 0;
+  const trabajador = async () => {
+    while (cola.length && !claveMala){
+      const it = cola.shift();
+      try {
+        const m = mejor(await buscar(it.q), it.yq);
+        if (m) aplicar(it, m);
+        it.intentado = true; it.confirmada = false; it.mod = Date.now();
+      } catch(e){ console.warn(e); }
+      $('nota').textContent = `Buscando en TMDB… ${++hechas}/${total}`;
+    }
+  };
+  await Promise.all([trabajador(), trabajador(), trabajador()]);
+  $('nota').textContent = claveMala ? 'La clave de TMDB no es válida. Revisa config.js.' : '';
+  guardarPronto(); pintar();
+}
+
+/* ================= Cuadro de código ================= */
+let tEscribe = 0;
+function escribir(texto, brillo){
+  clearInterval(tEscribe);
+  $('carta').classList.toggle('brillo', !!brillo);
+  $('sr').textContent = texto;
+  const el = $('texto');
+  if (reducir){ el.textContent = texto; return; }
+  el.textContent = ''; let i = 0;
+  tEscribe = setInterval(() => { el.textContent = texto.slice(0, ++i); if (i >= texto.length) clearInterval(tEscribe); }, texto.length > 90 ? 18 : 30);
+}
+
+/* ================= Carrete 3D ================= */
+let visor = null, anillo = null, girando = false;
+function crearAnillo(v){
+  const T = v.THREE, R = 3.3, CW = 1.0, CH = 1.5, N_MIN = 8;
+  const base3 = new T.Group(); base3.position.y = v.yTope; v.escena.add(base3);
+  const pista = new T.Mesh(new T.RingGeometry(R - 0.95, R + 0.95, 64), new T.MeshBasicMaterial({ color: 0xE9E6FF, transparent: true, opacity: 0.07, side: T.DoubleSide }));
+  pista.rotation.x = -Math.PI / 2; pista.position.y = 0.01; base3.add(pista);
+  const rueda = new T.Group(); base3.add(rueda);
+  const cargador = new T.TextureLoader(); cargador.setCrossOrigin('anonymous');
+  const cache = new Map();
+  const colores = ['#82204A', '#1F7A4D', '#690313', '#3a3a63', '#273C2C'];
+
+  function texTitulo(p, i){
+    const c = document.createElement('canvas'); c.width = 256; c.height = 384;
+    const g = c.getContext('2d');
+    g.fillStyle = colores[i % colores.length]; g.fillRect(0, 0, 256, 384);
+    g.strokeStyle = 'rgba(233,230,255,.5)'; g.lineWidth = 4; g.strokeRect(14, 14, 228, 356);
+    g.fillStyle = '#E9E6FF'; g.textAlign = 'center'; g.font = 'bold 30px Nunito, sans-serif';
+    const pal = p.titulo.split(' '); const lineas = []; let l = '';
+    pal.forEach(w => { if ((l + ' ' + w).trim().length > 14){ lineas.push(l); l = w; } else l = (l + ' ' + w).trim(); });
+    lineas.push(l);
+    const y0 = 192 - (lineas.length - 1) * 20;
+    lineas.slice(0, 6).forEach((x, k) => g.fillText(x, 128, y0 + k * 40));
+    if (p.anio){ g.font = '22px Nunito, sans-serif'; g.fillText(p.anio, 128, 350); }
+    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t;
+  }
+  const dorso = (() => {
+    const c = document.createElement('canvas'); c.width = 128; c.height = 192;
+    const g = c.getContext('2d'); g.fillStyle = '#273C2C'; g.fillRect(0, 0, 128, 192);
+    g.strokeStyle = '#8FB339'; g.lineWidth = 6;
+    for (let i = -192; i < 192; i += 26){ g.beginPath(); g.moveTo(i, 192); g.lineTo(i + 192, 0); g.stroke(); }
+    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t;
+  })();
+
+  let tarjetas = [], giro = null, ganador = null, pop = 0;
+  function limpiar(){ tarjetas.forEach(t => rueda.remove(t.g)); tarjetas = []; ganador = null; pop = 0; }
+  function montar(items){
+    limpiar(); rueda.rotation.y = 0;
+    const N = items.length;
+    items.forEach((p, i) => {
+      const a = 2 * Math.PI * i / N, g = new T.Group();
+      const bx = R * Math.sin(a), by = CH / 2 + 0.05, bz = R * Math.cos(a);
+      g.position.set(bx, by, bz); g.rotation.y = a;
+      const marco = new T.Mesh(new T.PlaneGeometry(CW + 0.07, CH + 0.07), new T.MeshBasicMaterial({ color: 0xE9E6FF, side: T.DoubleSide })); marco.position.z = -0.002;
+      const fm = new T.MeshBasicMaterial({ map: texTitulo(p, i) });
+      const frente = new T.Mesh(new T.PlaneGeometry(CW, CH), fm); frente.position.z = 0.001;
+      const rev = new T.Mesh(new T.PlaneGeometry(CW, CH), new T.MeshBasicMaterial({ map: dorso })); rev.rotation.y = Math.PI; rev.position.z = -0.005;
+      g.add(marco, frente, rev); rueda.add(g);
+      tarjetas.push({ g, a, bx, by, bz });
+      if (p.poster){
+        const url = IMG + 'w342' + p.poster;
+        const poner = t => { fm.map = t; fm.needsUpdate = true; };
+        if (cache.has(url)) poner(cache.get(url));
+        else cargador.load(url, t => { t.colorSpace = T.SRGBColorSpace; cache.set(url, t); poner(t); }, undefined, () => {});
+      }
+    });
+  }
+  function girarA(w){
+    return new Promise(fin => {
+      const N = tarjetas.length, aw = 2 * Math.PI * w / N, desde = rueda.rotation.y;
+      const d = (((desde + aw) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      giro = { desde, hasta: desde - d - 2 * Math.PI * (reducir ? 1 : 5), t0: performance.now(), dur: reducir ? 800 : 5200, fin, w };
+    });
+  }
+  v.alCuadro(dt => {
+    if (giro){
+      const p = Math.min(1, (performance.now() - giro.t0) / giro.dur), e = 1 - Math.pow(1 - p, 4);
+      rueda.rotation.y = giro.desde + (giro.hasta - giro.desde) * e;
+      if (p >= 1){ const f = giro.fin; ganador = tarjetas[giro.w]; pop = 0; giro = null; f(); }
+    } else if (!ganador && !reducir){ rueda.rotation.y -= 0.12 * dt; }
+    if (ganador){
+      pop = Math.min(1, pop + dt * 2.5);
+      const k = 1 + 0.17 * pop;
+      ganador.g.position.set(ganador.bx * k, ganador.by + 0.3 * pop, ganador.bz * k);
+      ganador.g.scale.setScalar(1 + 0.35 * pop);
+    }
+  });
+  return { montar, girarA };
+}
+
+/* ================= Girar ================= */
+let filtro = '', excluidas = new Set();
+const poolActual = () => pendientes().filter(p => !filtro || p.tags.includes(filtro)).filter(p => !excluidas.has(p.id));
+function muestraBase(pool, ganadora){
+  let m = pool.length <= 14 ? barajar(pool) : barajar([ganadora, ...barajar(pool.filter(x => x !== ganadora)).slice(0, 13)].filter(Boolean));
+  while (m.length < 8 && pool.length) m = m.concat(barajar(pool));
+  return m;
+}
+function armarInactivo(){
+  if (!anillo || girando) return;
+  const pool = poolActual();
+  anillo.montar(muestraBase(pool, null).slice(0, 14));
+}
+async function girar(){
+  if (girando) return;
+  if (!yo){ $('quien').showModal(); return; }
+  const pool = poolActual();
+  if (!pool.length){ escribir(filtro ? 'No hay pendientes con ese ánimo. Prueba con otro o con "Cualquiera".' : 'No hay películas pendientes. Agrega algunas con «+ Agregar».'); return; }
+  girando = true; $('girar').disabled = true;
+  const ganadora = pick(pool);
+  const m = muestraBase(pool, ganadora);
+  const idx = m.indexOf(ganadora);
+  if (visor) visor.agitar(0.5);
+  escribir('Olfateando el carrete…');
+  if (anillo){ anillo.montar(m); await anillo.girarA(idx); }
+  if (visor){ visor.saltar(); visor.brillo('#C9F26B', 3); }
+  escribir(pick(['¡Guau! Hoy toca: ', 'Mi nariz dice: ', 'Olfateé esta: ']) + `${ganadora.titulo}${ganadora.anio ? ' (' + ganadora.anio + ')' : ''}`, true);
+  girando = false; $('girar').disabled = false;
+  abrirDetalle(ganadora.id, 'resultado');
+}
+
+/* ================= Pintar interfaz ================= */
+let tab = 'pend';
+function pintar(){
+  $('yoNombre').textContent = yo ? PERSONAS[yo] : '¿quién?';
+  $('chips').innerHTML = `<button class="chip ${filtro ? '' : 'on'}" data-m="">Cualquiera</button>` +
+    MOODS.map(m => `<button class="chip ${filtro === m.id ? 'on' : ''}" data-m="${m.id}">${m.t}</button>`).join('') +
+    `<span id="cuenta">${poolActual().length} en el carrete</span>`;
+  if ($('lista').open) pintarLista();
+  armarInactivo();
+}
+$('chips').onclick = e => { const b = e.target.closest('[data-m]'); if (!b) return; filtro = b.dataset.m; excluidas = new Set(); pintar(); };
+
+function filaHTML(p){
+  const mini = p.poster ? `<img src="${IMG}w92${p.poster}" alt="" loading="lazy">` : `<span class="mini">${esc(p.titulo)}</span>`;
+  const tags = p.tags.map(t => (MOODS.find(m => m.id === t) || {}).t).filter(Boolean).join(' · ');
+  const nota = p.confirmada === false ? ' · ¿es esta?' : '';
+  const prom = p.vista ? ' · ' + Object.keys(PERSONAS).map(k => (p.votos[k] && p.votos[k].h) ? '🦴'.repeat(p.votos[k].h) : '').filter(Boolean).join(' / ') : '';
+  return `<li data-id="${p.id}"><div>${mini}</div><div class="fila"><b>${esc(p.titulo)}</b><small>${esc([p.anio, tags].filter(Boolean).join(' · '))}${esc(nota)}${esc(prom)}</small></div></li>`;
+}
+function pintarLista(){
+  const todas = vivas();
+  const grupos = { pend: todas.filter(p => !p.vista), vistas: todas.filter(p => p.vista), rev: todas.filter(p => p.confirmada === false && !p.vista) };
+  $('tabs').innerHTML = [['pend', 'Pendientes'], ['vistas', 'Vistas'], ['rev', 'Por revisar']]
+    .map(([k, t]) => `<button class="chip ${tab === k ? 'on' : ''}" data-tab="${k}">${t} <b>${grupos[k].length}</b></button>`).join('');
+  const q = $('busca').value.trim().toLowerCase();
+  const l = grupos[tab].filter(p => !q || p.titulo.toLowerCase().includes(q) || (p.q || '').toLowerCase().includes(q))
+    .sort((a, b) => tab === 'vistas' ? (b.fechaVista || '').localeCompare(a.fechaVista || '') : a.titulo.localeCompare(b.titulo));
+  $('filas').innerHTML = l.length ? l.map(filaHTML).join('') : '<li style="cursor:default">Nada por aquí todavía.</li>';
+}
+$('abrirLista').onclick = () => { pintarLista(); $('lista').showModal(); };
+$('tabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (b){ tab = b.dataset.tab; pintarLista(); } };
+$('busca').oninput = pintarLista;
+$('filas').onclick = e => { const li = e.target.closest('li[data-id]'); if (li) abrirDetalle(li.dataset.id); };
+document.addEventListener('click', e => { const c = e.target.closest('[data-cerrar]'); if (c) c.closest('dialog').close(); });
+
+/* ================= Detalle y calificación ================= */
+let actual = { id: '', modo: '' };
+function votosHTML(p){
+  return '<h3>Calificaciones</h3>' + Object.keys(PERSONAS).map(k => {
+    const v = p.votos[k] || {}, mio = k === yo;
+    const hs = [1, 2, 3, 4, 5].map(n => `<button class="hueso ${(v.h || 0) >= n ? 'on' : ''}" ${mio ? `data-acc="hueso" data-v="${n}"` : 'disabled'} aria-label="${n} huesitos">🦴</button>`).join('');
+    const com = mio
+      ? `<textarea id="com" rows="2" placeholder="Tu comentario…">${esc(v.c || '')}</textarea><div class="acciones"><button data-acc="guardarcom">Guardar comentario</button></div>`
+      : (v.c ? `<p class="coment">${esc(v.c)}</p>` : '<p class="coment dim">Sin comentario todavía.</p>');
+    return `<div class="voto"><b>${esc(PERSONAS[k])}${mio ? ' (tú)' : ''}</b><div>${hs}</div>${com}</div>`;
+  }).join('');
+}
+function pintarDetalle(){
+  const p = estado.peliculas[actual.id]; if (!p) return;
+  const usado = (estado.vetos[hoyStr()] || {})[yo];
+  const meta = [p.anio, p.duracion ? p.duracion + ' min' : '', p.tmdb && p.tmdb.tipo === 'tv' ? 'Serie' : ''].filter(Boolean).join(' · ');
+  $('detalle').innerHTML = `
+    <div class="det">
+      ${p.poster ? `<img class="pos" src="${IMG}w342${p.poster}" alt="Póster">` : `<div class="pos sin">${esc(p.titulo)}</div>`}
+      <div>
+        <h2>${esc(p.titulo)}</h2>
+        <p class="meta" id="metaDet">${esc(meta)}</p>
+        <div>${MOODS.map(m => `<button class="chip ${p.tags.includes(m.id) ? 'on' : ''}" data-acc="tag" data-v="${m.id}">${m.t}</button>`).join(' ')}</div>
+        ${p.por ? `<p class="meta">La propuso: ${esc(PERSONAS[p.por])}</p>` : ''}
+      </div>
+    </div>
+    <p class="sinop">${esc(p.sinopsis || 'Sin sinopsis.')}</p>
+    ${p.confirmada === false ? `<div class="aviso">¿Es esta la película? <button data-acc="confirmar">Sí, es esta</button> <button class="ghost" data-acc="cambiar">Buscar otra</button></div>` : ''}
+    ${p.vista ? votosHTML(p) : ''}
+    <div class="acciones">
+      ${actual.modo === 'resultado' ? `<button class="main" data-acc="esa">¡Esa, la vemos!</button><button class="ghost" data-acc="veto" ${usado ? 'disabled' : ''}>${usado ? 'Ya usaste tu veto hoy' : 'Vetar (1 por noche)'}</button>` : ''}
+      <button data-acc="vista">${p.vista ? 'Volver a pendientes' : 'Ya la vimos'}</button>
+      <button class="ghost" data-acc="cambiar">Cambiar versión</button>
+      <button class="ghost" data-acc="borrar">Quitar</button>
+      <button class="ghost" data-cerrar>Cerrar</button>
+    </div>`;
+}
+function abrirDetalle(id, modo = ''){
+  const p = estado.peliculas[id]; if (!p) return;
+  actual = { id, modo }; pintarDetalle();
+  if (!$('detalle').open) $('detalle').showModal();
+  cargarDetalle(p).then(() => { if (actual.id === id && p.duracion && $('metaDet')) $('metaDet').textContent = [p.anio, p.duracion + ' min'].filter(Boolean).join(' · '); });
+}
+function capturarComentario(p){ const t = $('com'); if (t && yo){ p.votos[yo] = { ...(p.votos[yo] || {}), c: t.value }; } }
+$('detalle').addEventListener('click', e => {
+  const b = e.target.closest('[data-acc]'); if (!b) return;
+  const p = estado.peliculas[actual.id], acc = b.dataset.acc, hoy = hoyStr();
+  capturarComentario(p);
+  if (acc === 'tag'){ const t = b.dataset.v; p.tags = p.tags.includes(t) ? p.tags.filter(x => x !== t) : [...p.tags, t]; tocarItem(p); pintarDetalle(); }
+  else if (acc === 'confirmar'){ p.confirmada = true; tocarItem(p); pintarDetalle(); }
+  else if (acc === 'cambiar'){ $('detalle').close(); abrirAgregar(p.id); }
+  else if (acc === 'vista'){ p.vista = !p.vista; p.fechaVista = p.vista ? hoy : ''; if (estado.hoy && estado.hoy.id === p.id) estado.hoy = null; tocarItem(p); pintarDetalle(); }
+  else if (acc === 'hueso'){ const n = +b.dataset.v, v = p.votos[yo] || {}; p.votos[yo] = { ...v, h: v.h === n ? 0 : n }; tocarItem(p); pintarDetalle(); }
+  else if (acc === 'guardarcom'){ tocarItem(p); b.textContent = 'Guardado ✓'; }
+  else if (acc === 'esa'){
+    estado.hoy = { id: p.id, fecha: hoy, mod: Date.now() }; guardarPronto(); $('detalle').close();
+    escribir(`Esta noche: ${p.titulo}. ¡A preparar las palomitas!`, true); if (visor){ visor.saltar(); visor.brillo('#C9F26B', 3); }
+  } else if (acc === 'veto'){
+    estado.vetos[hoy] = { ...(estado.vetos[hoy] || {}), [yo]: true }; excluidas.add(p.id); guardarPronto(); $('detalle').close();
+    escribir('Veto aceptado. Gira de nuevo; esa no vuelve a salir esta vez.'); pintar();
+  } else if (acc === 'borrar'){
+    if (!confirm(`¿Quitar «${p.titulo}» de la lista?`)) return;
+    p.borrada = true; tocarItem(p); $('detalle').close();
+  }
+});
+$('detalle').addEventListener('close', () => { const p = estado.peliculas[actual.id]; if (p){ capturarComentario(p); guardarPronto(); } });
+
+/* ================= Agregar / cambiar versión ================= */
+let relink = '', tBusca;
+function abrirAgregar(idRelink = ''){
+  relink = idRelink;
+  const p = idRelink ? estado.peliculas[idRelink] : null;
+  $('tAgr').textContent = p ? 'Cambiar versión' : 'Agregar película';
+  $('q').value = p ? (p.q || p.titulo) : ''; $('res').innerHTML = '';
+  $('tmdbNota').textContent = TMDB_ON ? 'Resultados de TMDB. Esta página no está avalada ni certificada por TMDB.' : 'Sin clave de TMDB: solo se puede agregar a mano, con título.';
+  $('agregar').showModal(); if (p && TMDB_ON) buscarYMostrar(); else $('q').focus();
+}
+async function buscarYMostrar(){
+  const q = $('q').value.trim(); if (!q || !TMDB_ON){ $('res').innerHTML = ''; return; }
+  try {
+    const res = (await buscar(q)).slice(0, 8);
+    $('res').innerHTML = res.length ? res.map((r, i) => `<li data-i="${i}"><div>${r.poster_path ? `<img src="${IMG}w92${r.poster_path}" alt="">` : '<span class="mini">sin póster</span>'}</div><div class="fila"><b>${esc(r.title || r.name)}</b><small>${esc(anioDe(r))}${r.media_type === 'tv' ? ' · Serie' : ''}</small></div></li>`).join('') : '<li style="cursor:default">Sin resultados. Puedes agregarla a mano.</li>';
+    $('res')._datos = res;
+  } catch(e){ $('res').innerHTML = `<li style="cursor:default">No se pudo buscar (${esc(e.message)}).</li>`; }
+}
+$('q').oninput = () => { clearTimeout(tBusca); tBusca = setTimeout(buscarYMostrar, 380); };
+$('res').onclick = e => {
+  const li = e.target.closest('li[data-i]'); if (!li) return;
+  const r = $('res')._datos[+li.dataset.i];
+  let p;
+  if (relink){ p = estado.peliculas[relink]; aplicar(p, r); p.confirmada = true; p.intentado = true; }
+  else { p = { ...base(r.title || r.name), id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) }; aplicar(p, r); p.confirmada = true; estado.peliculas[p.id] = p; }
+  tocarItem(p); $('agregar').close();
+  escribir(relink ? `Listo: ahora es «${p.titulo}».` : `Agregada: ${p.titulo}.`);
+};
+$('manual').onclick = () => {
+  const t = $('q').value.trim(); if (!t) return;
+  if (relink){ const p = estado.peliculas[relink]; p.titulo = t; p.confirmada = true; tocarItem(p); }
+  else { const p = { ...base(t), id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) }; estado.peliculas[p.id] = p; tocarItem(p); }
+  $('agregar').close(); escribir(`Agregada: ${t}.`);
+};
+$('abrirAgr').onclick = () => { if (!yo){ $('quien').showModal(); return; } abrirAgregar(); };
+
+/* ================= Quién eres ================= */
+function elegirYo(k){ yo = k; try { localStorage.setItem('perrito-yo', k); } catch(e){} $('quien').close(); pintar(); }
+$('q-chinche').onclick = () => elegirYo('chinche');
+$('q-perrito').onclick = () => elegirYo('perrito');
+$('quienBtn').onclick = () => $('quien').showModal();
+$('quien').addEventListener('cancel', e => { if (!yo) e.preventDefault(); });
+
+$('girar').onclick = girar;
+$('girarSr').onclick = girar;
+
+/* ================= Reiniciar (abre la página con ?reiniciar) ================= */
+async function reiniciar(){
+  if (!confirm('¿Borrar la lista, las calificaciones y los vetos? Volverá a la lista inicial.')) return;
+  estado = { ...vacio(), reinicio: Date.now() }; sembrar(); guardarLocal();
+  if (store){ try { await subir(); $('nota').textContent = 'Listo: todo quedó como nuevo.'; } catch(e){ $('nota').textContent = 'No se pudo reiniciar en Supabase.'; } }
+}
+
+/* ================= Inicio ================= */
+$('pregunta').textContent = '> ' + PREGUNTA;
+escribir('Toca al perrito para girar el carrete…');
+pintar();
+if (!yo) $('quien').showModal();
+if (!conectado) $('nota').textContent = 'Sin Supabase: la lista solo se guarda en este dispositivo.';
+
+(async () => {
+  if (new URLSearchParams(location.search).has('reiniciar')){
+    await reiniciar(); history.replaceState(null, '', location.pathname + location.hash);
+  }
+  try {
+    visor = await crearVisor($('visor'), '../assets/modelos/pewito.glb', {
+      radio: 4.7, alturaCam: 0.3, tamano: 2.4, giro: 0.25
+      /* Si el perrito se ve acostado o de lado, descomenta y ajusta (en radianes):
+         ajusteModelo: { x: Math.PI / 2, y: 0, z: 0 } */
+    });
+    anillo = crearAnillo(visor);
+    visor.onTocar(girar);
+    armarInactivo();
+  } catch(e){
+    console.error(e);
+    $('visor').insertAdjacentHTML('beforeend', '<div id="error">No se pudo cargar el modelo 3D. Toca aquí para girar igual.</div>');
+    $('visor').onclick = girar;
+  }
+  const remoto = await cargarRemoto();
+  estado = fusionar(estado, remoto);
+  const antes = Object.keys(estado.peliculas).length;
+  if (!remoto || antes === 0) sembrar();
+  guardarLocal(); pintar();
+  if (!remoto || Object.keys(estado.peliculas).length !== antes) guardarPronto();
+  if (estado.hoy && estado.hoy.fecha === hoyStr() && estado.peliculas[estado.hoy.id]) escribir(`Esta noche: ${estado.peliculas[estado.hoy.id].titulo}.`, true);
+  vincularPendientes();
+})();
+
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden){ guardarRemoto(); return; }
+  const remoto = await cargarRemoto();
+  if (remoto){ estado = fusionar(estado, remoto); guardarLocal(); if (!$('detalle').open) pintar(); }
+});
+</script>
+</body>
+</html>
 
