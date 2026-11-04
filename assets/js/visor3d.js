@@ -20,7 +20,7 @@ function textura(stops){
 }
 
 export async function crearVisor(contenedor, url, opciones = {}){
-  const o = { tamano: 2.4, giro: 0.35, flota: 0.07, msMantener: 700, radio: 1.95, alturaCam: 0.15, inclinacion: 0.28, pedestal: true, medio: null,
+  const o = { tamano: 2.4, giro: 0.35, flota: 0.07, msMantener: 700, radio: 1.95, alturaCam: 0.15, inclinacion: 0.28, pedestal: true, medio: null, ajusteAncho: false,
               ajusteModelo: { x: 0, y: 0, z: 0 }, ...opciones };   // ajusteModelo: gira el modelo si viene acostado
   const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducir){ o.giro *= 0.3; o.flota *= 0.3; }
@@ -123,7 +123,7 @@ export async function crearVisor(contenedor, url, opciones = {}){
     cam.aspect = w / h;
     const fv = THREE.MathUtils.degToRad(cam.fov);
     const fh = 2 * Math.atan(Math.tan(fv / 2) * cam.aspect);
-    const r = o.radio;
+    const r = o.ajusteAncho ? o.radio * Math.max(1, cam.aspect / 0.8) : o.radio;   // en pantallas anchas se aleja para que quepa todo
     const d = Math.max(r / Math.sin(fv / 2), r / Math.sin(fh / 2)) * 1.03;
     cam.position.set(0, medio + d * o.alturaCam, d);
     cam.lookAt(0, medio, 0);
