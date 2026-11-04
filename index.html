@@ -1,348 +1,216 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Collage de fotos</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto vacío.</title>
+
 <style>
-  :root {
-    --wall: #dadff1;
-    --print: #ffffff;
-    --blue: #2b4bb5;
-    --red: #e4452e;
-    --text: #2b4bb5;
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  body {
-    background: var(--wall);
-    color: var(--text);
-    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #252c35;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #263b55;
+    padding: 25px;
+}
+
+/* DISQUETE */
+
+.floppy {
+    width: 340px;
+    max-width: 100%;
+    background: #c8c9c3;
+    border-radius: 12px 12px 8px 8px;
+    padding: 22px 22px 0;
+    box-shadow:
+        10px 12px 0 #171e28,
+        0 20px 45px rgba(0,0,0,.35);
+    position: relative;
     overflow: hidden;
-  }
-  #viewport {
-    position: fixed; inset: 0;
-    touch-action: none; cursor: grab;
-  }
-  #viewport.dragging { cursor: grabbing; }
-  #stage {
-    position: absolute; left: 0; top: 0;
-    width: 1600px;
-    transform-origin: 0 0;
-    will-change: transform;
-    padding: 40px;
-  }
-  #grid { column-count: 5; column-gap: 18px; }
-  .print {
-    break-inside: avoid;
-    margin: 0 0 18px;
-    background: var(--print);
-    padding: 8px 8px 8px;
-    box-shadow: 0 6px 18px rgba(43,75,181,.28);
-    transform: rotate(var(--r, 0deg));
-    cursor: zoom-in;
-  }
-  .print img { display: block; width: 100%; height: auto; background: #cfd3dc; }
-  .print.nueva { animation: llega .9s ease-out; }
-  @keyframes llega {
-    0% { outline: 4px solid var(--red); outline-offset: 6px; }
-    100% { outline: 4px solid transparent; outline-offset: 6px; }
-  }
+}
 
-  header {
-    position: fixed; top: 0; left: 0; right: 0;
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 14px;
-    display: flex; align-items: baseline; gap: 14px;
-    pointer-events: none;
-    background: linear-gradient(var(--wall), transparent);
-  }
-  header h1 { margin: 0; font-size: 1.7rem; line-height: 1; font-weight: 700; letter-spacing: -.02em; color: var(--red); }
-  header h1 em {
-    font-family: "Bodoni Moda", "Didot", "Times New Roman", serif;
-    font-style: normal; font-weight: 500; letter-spacing: 0;
-    color: var(--blue); font-size: 1.15em; margin-left: .15em;
-  }
-  header span { font-size: .9rem; font-weight: 500; }
+/* Etiqueta */
 
-  .controls {
-    position: fixed; right: 16px; top: 50%; transform: translateY(-50%);
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .controls button, .upload {
-    font: inherit; border: 0; cursor: pointer;
-    background: rgba(43,75,181,.14); color: var(--blue);
-    backdrop-filter: blur(6px);
-  }
-  .controls button {
-    width: 42px; height: 42px; border-radius: 50%; font-size: 1.3rem; line-height: 1;
-  }
-  .controls button:hover { background: rgba(43,75,181,.26); }
+.label {
+    background: #e9e4d5;
+    min-height: 350px;
+    padding: 22px 18px;
+    border-radius: 3px;
+    border: 1px solid #aaa99d;
+    position: relative;
+}
 
-  .upload {
-    position: fixed; left: 50%; transform: translateX(-50%);
-    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-    background: var(--red); color: #fff;
-    font-weight: 700; font-size: 1.05rem;
-    padding: 14px 26px; border-radius: 999px;
-    box-shadow: 0 8px 24px rgba(43,75,181,.35);
-  }
-  .upload:disabled { opacity: .6; cursor: progress; }
-  button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.top-line {
+    height: 8px;
+    background: #a33e3e;
+    margin: -22px -18px 20px;
+}
 
-  #estado {
-    position: fixed; left: 50%; transform: translateX(-50%);
-    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-    background: var(--blue); color: #fff; padding: 8px 14px; border-radius: 10px;
-    font-size: .92rem; display: none;
-  }
-  #vacio {
-    position: fixed; inset: 0; display: none; place-items: center; text-align: center;
-    padding: 24px; pointer-events: none; font-size: 1.2rem; opacity: .85;
-  }
+.system {
+    font-size: 9px;
+    color: #8a887e;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+}
 
-  #lightbox {
-    position: fixed; inset: 0; background: rgba(31,52,140,.93);
-    display: none; place-items: center; z-index: 10; cursor: zoom-out;
-  }
-  #lightbox.abierto { display: grid; }
-  #lightbox img { max-width: 94vw; max-height: 92vh; box-shadow: 0 10px 40px rgba(0,0,20,.5); }
+h1 {
+    font-size: 25px;
+    line-height: 1.2;
+    margin: 0 0 9px;
+    font-weight: 600;
+    color: #243d59;
+}
 
-  @media (max-width: 700px) {
-    header h1 { font-size: 1.35rem; }
-    .controls { top: auto; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); right: 12px; transform: none; }
-    .upload { left: 14px; transform: none; padding: 13px 20px; }
-    #estado { left: 14px; transform: none; }
-  }
-  @media (prefers-reduced-motion: reduce) { .print.nueva { animation: none; } }
+.subtitle {
+    font-size: 11px;
+    color: #a3433e;
+    margin-bottom: 35px;
+}
+
+.divider {
+    border-top: 1px dashed #aaa99d;
+    margin-bottom: 22px;
+}
+
+.message {
+    font-size: 10px;
+    line-height: 1.9;
+    color: #424b54;
+    min-height: 110px;
+}
+
+.cursor {
+    display: inline-block;
+    width: 7px;
+    height: 12px;
+    background: #a3433e;
+    vertical-align: middle;
+    animation: blink .8s steps(2) infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+.footer {
+    position: absolute;
+    bottom: 15px;
+    left: 18px;
+    right: 18px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    color: #99968a;
+    letter-spacing: 1px;
+}
+
+/* Parte inferior del disquete */
+
+.disk-bottom {
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.metal {
+    width: 100px;
+    height: 38px;
+    background: linear-gradient(135deg, #777e80, #c5c8c3, #777e80);
+    border: 2px solid #8b908e;
+    border-radius: 2px;
+}
+
+.metal::after {
+    content: "";
+    display: block;
+    width: 30px;
+    height: 12px;
+    background: #303a43;
+    margin: 10px auto;
+    border-radius: 2px;
+}
+
+.disk-label {
+    position: absolute;
+    right: 2px;
+    bottom: 8px;
+    font-size: 7px;
+    color: #777e80;
+}
+
 </style>
 </head>
+
 <body>
 
-<header>
-  <h1>Experiencia<em>ESARQ</em></h1>
-  <span id="contador"></span>
-</header>
+<div class="floppy">
 
-<div id="viewport">
-  <div id="stage"><div id="grid"></div></div>
+    <div class="label">
+
+        <div class="top-line"></div>
+
+        <div class="system">
+            SYSTEM FILE // 001
+        </div>
+
+        <h1>Proyecto vacío.</h1>
+
+        <div class="subtitle">
+            Listo para almacenar.
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="message">
+            <span id="typed"></span><span class="cursor"></span>
+        </div>
+
+        <div class="footer">
+            <span>LOVE.EXE</span>
+            <span>28.0 KB</span>
+        </div>
+
+    </div>
+
+    <div class="disk-bottom">
+        <div class="metal"></div>
+        <span class="disk-label">3½ FLOPPY DISK</span>
+    </div>
+
 </div>
-
-<div id="vacio">Aún no hay fotos.<br>Sube la primera con el botón de abajo.</div>
-
-<div class="controls">
-  <button id="mas" aria-label="Acercar">+</button>
-  <button id="menos" aria-label="Alejar">−</button>
-  <button id="ajustar" aria-label="Ver todo" title="Ver todo">⤢</button>
-</div>
-
-<div id="estado" role="status"></div>
-<button class="upload" id="btnSubir">Subir fotos</button>
-<input id="archivos" type="file" accept="image/*" multiple hidden>
-
-<div id="lightbox" aria-modal="true" role="dialog"><img alt=""></div>
 
 <script>
-/* ============ CONFIGURACIÓN: cambia estos valores ============ */
-const SUPABASE_URL = "https://qczetywfmcusmwuzwjrz.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_rXC-sZAq_ZKpUOScWmraqQ_a_HgUCD-";
-const BUCKET = "fotos";      // bucket público en Storage
-const TABLA = "fotos";       // tabla con columnas: id, path, width, height, created_at
-const MAX_LADO = 1600;       // las fotos se reducen a este tamaño antes de subirse
-/* ============================================================== */
+const message = "Este floppy disk está listo para cualquier idea que se te ocurra. Estoy muy emocionada de todos los proyectos que haremos juntos. Felices 28 años, amorcito. Te amo.";
 
-const H = { apikey: SUPABASE_ANON_KEY };
+const target = document.getElementById("typed");
 
-const $ = (id) => document.getElementById(id);
-const viewport = $("viewport"), stage = $("stage"), grid = $("grid");
-const vistas = new Set();
+let index = 0;
 
-/* ---------- Render ---------- */
-function urlDe(path) {
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
-}
-function rotacion(id) {
-  let h = 0;
-  for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) | 0;
-  return ((Math.abs(h) % 50) / 10 - 2.5).toFixed(1) + "deg";
-}
-function agregar(foto, { nueva = false, alInicio = false } = {}) {
-  if (vistas.has(foto.id)) return;
-  vistas.add(foto.id);
-  const fig = document.createElement("figure");
-  fig.className = "print" + (nueva ? " nueva" : "");
-  fig.style.setProperty("--r", rotacion(foto.id));
-  fig.dataset.src = urlDe(foto.path);
-  const img = new Image();
-  img.loading = "lazy"; img.decoding = "async"; img.alt = "Foto del grupo";
-  if (foto.width && foto.height) img.style.aspectRatio = foto.width + " / " + foto.height;
-  img.src = fig.dataset.src;
-  fig.appendChild(img);
-  alInicio ? grid.prepend(fig) : grid.appendChild(fig);
-  actualizarConteo();
-}
-function actualizarConteo() {
-  const n = vistas.size;
-  $("contador").textContent = n ? n + (n === 1 ? " foto" : " fotos") : "";
-  $("vacio").style.display = n ? "none" : "grid";
-}
-async function mensajeError(r) {
-  try { const j = await r.json(); return j.message || j.error || r.statusText; } catch { return r.statusText; }
-}
-async function listar() {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}?select=*&order=created_at.desc`, { headers: H });
-  if (!r.ok) throw new Error(await mensajeError(r));
-  return r.json();
-}
-async function cargar() {
-  try { (await listar()).forEach((f) => agregar(f)); }
-  catch (e) { aviso("No se pudieron cargar las fotos: " + e.message, 8000); }
-  actualizarConteo();
-  requestAnimationFrame(ajustarVista);
-  // Revisa cada 8 segundos si hay fotos nuevas de otras personas
-  setInterval(async () => {
-    try { (await listar()).reverse().forEach((f) => agregar(f, { nueva: true, alInicio: true })); } catch {}
-  }, 8000);
-}
-
-/* ---------- Zoom y desplazamiento ---------- */
-let escala = 1, tx = 0, ty = 0;
-const MIN = 0.15, MAX = 6;
-function aplicar() {
-  stage.style.transform = `translate(${tx}px, ${ty}px) scale(${escala})`;
-}
-function zoomEn(cx, cy, factor) {
-  const nueva = Math.min(MAX, Math.max(MIN, escala * factor));
-  const k = nueva / escala;
-  tx = cx - (cx - tx) * k;
-  ty = cy - (cy - ty) * k;
-  escala = nueva;
-  aplicar();
-}
-function ajustarVista() {
-  const w = stage.offsetWidth;
-  escala = Math.min(1, innerWidth / w);
-  tx = (innerWidth - w * escala) / 2;
-  ty = 56;
-  aplicar();
-}
-viewport.addEventListener("wheel", (e) => {
-  e.preventDefault();
-  zoomEn(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0015));
-}, { passive: false });
-
-const punteros = new Map();
-let distPrev = 0, movido = 0;
-viewport.addEventListener("pointerdown", (e) => {
-  punteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (punteros.size === 1) movido = 0;
-  if (punteros.size === 2) {
-    const [a, b] = [...punteros.values()];
-    distPrev = Math.hypot(a.x - b.x, a.y - b.y);
-  }
-  viewport.classList.add("dragging");
-});
-window.addEventListener("pointermove", (e) => {
-  const p = punteros.get(e.pointerId);
-  if (!p) return;
-  const dx = e.clientX - p.x, dy = e.clientY - p.y;
-  if (punteros.size === 1) {
-    tx += dx; ty += dy; movido += Math.abs(dx) + Math.abs(dy);
-    aplicar();
-  }
-  p.x = e.clientX; p.y = e.clientY;
-  if (punteros.size === 2) {
-    const [a, b] = [...punteros.values()];
-    const d = Math.hypot(a.x - b.x, a.y - b.y);
-    if (distPrev) zoomEn((a.x + b.x) / 2, (a.y + b.y) / 2, d / distPrev);
-    distPrev = d; movido = 99;
-  }
-});
-function soltar(e) {
-  punteros.delete(e.pointerId);
-  if (punteros.size < 2) distPrev = 0;
-  if (!punteros.size) viewport.classList.remove("dragging");
-}
-window.addEventListener("pointerup", soltar);
-window.addEventListener("pointercancel", soltar);
-
-$("mas").onclick = () => zoomEn(innerWidth / 2, innerHeight / 2, 1.4);
-$("menos").onclick = () => zoomEn(innerWidth / 2, innerHeight / 2, 1 / 1.4);
-$("ajustar").onclick = ajustarVista;
-addEventListener("resize", () => { if (escala <= 1) ajustarVista(); });
-
-/* ---------- Foto en grande ---------- */
-const lb = $("lightbox");
-stage.addEventListener("click", (e) => {
-  if (movido > 6) return;
-  const fig = e.target.closest(".print");
-  if (!fig) return;
-  lb.querySelector("img").src = fig.dataset.src;
-  lb.classList.add("abierto");
-});
-lb.addEventListener("click", () => lb.classList.remove("abierto"));
-addEventListener("keydown", (e) => { if (e.key === "Escape") lb.classList.remove("abierto"); });
-
-/* ---------- Subida ---------- */
-let timer;
-function aviso(txt, ms) {
-  const el = $("estado");
-  el.textContent = txt; el.style.display = "block";
-  clearTimeout(timer);
-  if (ms) timer = setTimeout(() => (el.style.display = "none"), ms);
-}
-function reducir(file) {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const r = Math.min(1, MAX_LADO / Math.max(img.width, img.height));
-      const w = Math.round(img.width * r), h = Math.round(img.height * r);
-      const c = document.createElement("canvas");
-      c.width = w; c.height = h;
-      c.getContext("2d").drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      c.toBlob((b) => (b ? resolve({ blob: b, w, h }) : reject(new Error("No se pudo procesar"))), "image/jpeg", 0.85);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Formato no compatible")); };
-    img.src = url;
-  });
-}
-$("btnSubir").onclick = () => $("archivos").click();
-$("archivos").onchange = async (e) => {
-  const archivos = [...e.target.files];
-  e.target.value = "";
-  if (!archivos.length) return;
-  $("btnSubir").disabled = true;
-  let ok = 0, fallos = 0, ultimoError = "";
-  for (let i = 0; i < archivos.length; i++) {
-    aviso(`Subiendo ${i + 1} de ${archivos.length}…`);
-    try {
-      const { blob, w, h } = await reducir(archivos[i]);
-      const path = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
-      const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
-        method: "POST", headers: { ...H, "Content-Type": "image/jpeg" }, body: blob
-      });
-      if (!up.ok) throw new Error(await mensajeError(up));
-      const ins = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}`, {
-        method: "POST",
-        headers: { ...H, "Content-Type": "application/json", Prefer: "return=representation" },
-        body: JSON.stringify({ path, width: w, height: h })
-      });
-      if (!ins.ok) throw new Error(await mensajeError(ins));
-      const [fila] = await ins.json();
-      agregar(fila, { nueva: true, alInicio: true });
-      ok++;
-    } catch (err) {
-      console.error(err); fallos++; ultimoError = err.message || String(err);
+function typeWriter() {
+    if (index < message.length) {
+        target.textContent += message.charAt(index);
+        index++;
+        setTimeout(typeWriter, 42);
     }
-  }
-  $("btnSubir").disabled = false;
-  aviso(fallos ? `${ok} subidas, ${fallos} con error: ${ultimoError}` : `Listo: ${ok} ${ok === 1 ? "foto subida" : "fotos subidas"}`, fallos ? 12000 : 4000);
-};
+}
 
-cargar();
+window.addEventListener("load", () => {
+    setTimeout(typeWriter, 900);
+});
 </script>
+
 </body>
 </html>
