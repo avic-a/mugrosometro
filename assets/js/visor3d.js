@@ -20,7 +20,7 @@ function textura(stops){
 }
 
 export async function crearVisor(contenedor, url, opciones = {}){
-  const o = { tamano: 2.4, giro: 0.35, flota: 0.07, msMantener: 700, radio: 1.95, alturaCam: 0.15,
+  const o = { tamano: 2.4, giro: 0.35, flota: 0.07, msMantener: 700, radio: 1.95, alturaCam: 0.15, inclinacion: 0.28, pedestal: true, medio: null,
               ajusteModelo: { x: 0, y: 0, z: 0 }, ...opciones };   // ajusteModelo: gira el modelo si viene acostado
   const reducir = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducir){ o.giro *= 0.3; o.flota *= 0.3; }
@@ -61,7 +61,7 @@ export async function crearVisor(contenedor, url, opciones = {}){
   pivote.scale.setScalar(esc);
   const flota = new THREE.Group();                     // sube y baja, se agita
   flota.add(pivote);
-  flota.rotation.x = 0.28;                             // ligera inclinación para verlo desde arriba
+  flota.rotation.x = o.inclinacion;                             // ligera inclinación para verlo desde arriba
   escena.add(flota);
 
   /* Zona de toque generosa (esfera invisible alrededor del modelo) */
@@ -70,24 +70,29 @@ export async function crearVisor(contenedor, url, opciones = {}){
 
   /* Pedestal hexagonal, aro de luz y sombra */
   const yTope = -(tam.y * esc / 2 + 0.9);
-  const pedestal = new THREE.Mesh(
-    new THREE.CylinderGeometry(1.55, 1.7, 0.16, 6),
-    new THREE.MeshStandardMaterial({ color: 0x273C2C, roughness: 0.85, flatShading: true }));
-  pedestal.position.y = yTope - 0.08;
-  escena.add(pedestal);
-  const aro = new THREE.Mesh(
-    new THREE.RingGeometry(1.2, 1.4, 6),
-    new THREE.MeshBasicMaterial({ color: 0x8FB339, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
-  aro.rotation.x = -Math.PI / 2;
-  aro.position.y = yTope + 0.005;
-  escena.add(aro);
-  const sombra = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.6, 2.6),
-    new THREE.MeshBasicMaterial({ map: textura([[0, 'rgba(0,0,0,.75)'], [1, 'rgba(0,0,0,0)']]), transparent: true, depthWrite: false }));
-  sombra.rotation.x = -Math.PI / 2;
-  sombra.position.y = yTope + 0.012;
-  escena.add(sombra);
-  luzAro.position.set(0, yTope + 0.6, 0.6);
+  let aro = null, sombra = null;
+  if (o.pedestal){
+    const pedestal = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.55, 1.7, 0.16, 6),
+      new THREE.MeshStandardMaterial({ color: 0x273C2C, roughness: 0.85, flatShading: true }));
+    pedestal.position.y = yTope - 0.08;
+    escena.add(pedestal);
+    aro = new THREE.Mesh(
+      new THREE.RingGeometry(1.2, 1.4, 6),
+      new THREE.MeshBasicMaterial({ color: 0x8FB339, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    aro.rotation.x = -Math.PI / 2;
+    aro.position.y = yTope + 0.005;
+    escena.add(aro);
+    sombra = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.6, 2.6),
+      new THREE.MeshBasicMaterial({ map: textura([[0, 'rgba(0,0,0,.75)'], [1, 'rgba(0,0,0,0)']]), transparent: true, depthWrite: false }));
+    sombra.rotation.x = -Math.PI / 2;
+    sombra.position.y = yTope + 0.012;
+    escena.add(sombra);
+    luzAro.position.set(0, yTope + 0.6, 0.6);
+  } else {
+    luzAro.position.set(0, -1.6, 1.8);              // luz verde que sube desde abajo
+  }
 
   /* Halo detrás del modelo */
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -111,7 +116,7 @@ export async function crearVisor(contenedor, url, opciones = {}){
   escena.add(particulas);
 
   /* Cámara: se acomoda al espacio disponible (vertical u horizontal) */
-  const medio = yTope / 2 + 0.1;
+  const medio = o.medio !== null ? o.medio : yTope / 2 + 0.1;
   function ajustar(){
     const w = contenedor.clientWidth || 1, h = contenedor.clientHeight || 1;
     renderer.setSize(w, h, false);
@@ -129,13 +134,15 @@ export async function crearVisor(contenedor, url, opciones = {}){
   ajustar();
 
   /* Efectos que se pueden disparar desde la página */
-  let agit = 0, marea = 0, haloExtra = 0, haloDur = 1, salto = 0;
+  let agit = 0, marea = 0, haloExtra = 0, haloDur = 1, salto = 0, vuelta = null;
   const colorBase = new THREE.Color(0xE9E6FF);
   const api = {
     agitar(f = 1){ agit = Math.max(agit, f); },
     mareo(seg = 1.5){ marea = seg; agit = Math.max(agit, 0.6); },
     brillo(color = '#C9F26B', seg = 2.5){ halo.material.color.set(color); haloExtra = seg; haloDur = seg; },
     saltar(){ salto = 1; },
+    vueltaRapida(ms = 1000){ vuelta = { t0: performance.now(), dur: ms, desde: pivote.rotation.y }; },
+    alto: tam.y * esc,
     alCuadro(fn){ api._cuadro = fn; },
     THREE, escena, flota, pivote, yTope,
     onTocar(fn){ api._tocar = fn; },
@@ -175,14 +182,24 @@ export async function crearVisor(contenedor, url, opciones = {}){
     const dt = Math.min(0.05, (ahora - antes) / 1000);
     antes = ahora; t += dt;
 
-    pivote.rotation.y += (o.giro + (marea > 0 ? 8 * Math.min(1, marea) : 0)) * dt;
+    if (vuelta){                                           // vuelta rápida y regresa de frente
+      const p = Math.min(1, (ahora - vuelta.t0) / vuelta.dur);
+      const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      pivote.rotation.y = vuelta.desde + 2 * Math.PI * e;
+      if (p >= 1) vuelta = null;
+    } else {
+      pivote.rotation.y += (o.giro + (marea > 0 ? 8 * Math.min(1, marea) : 0)) * dt;
+      if (o.giro === 0 && marea <= 0){                     // sin giro: vuelve suave al frente
+        const obj = Math.round(pivote.rotation.y / (2 * Math.PI)) * 2 * Math.PI;
+        pivote.rotation.y += (obj - pivote.rotation.y) * Math.min(1, dt * 6);
+      }
+    }
     marea = Math.max(0, marea - dt);
 
     const s = Math.sin(t * 1.5);
     salto = Math.max(0, salto - dt * 1.6);
     flota.position.y = s * o.flota + (salto > 0 ? Math.sin(Math.PI * (1 - salto)) * 0.7 : 0);
-    sombra.scale.setScalar(1 - s * 0.08);
-    sombra.material.opacity = 0.9 - s * 0.1;
+    if (sombra){ sombra.scale.setScalar(1 - s * 0.08); sombra.material.opacity = 0.9 - s * 0.1; }
 
     agit = Math.max(0, agit - dt * 1.8);
     flota.rotation.z = Math.sin(t * 45) * 0.22 * agit;
@@ -193,8 +210,7 @@ export async function crearVisor(contenedor, url, opciones = {}){
     halo.material.opacity = 0.2 + 0.7 * k;
     if (haloExtra === 0) halo.material.color.lerp(colorBase, 0.1);
     luzAro.intensity = 8 + 30 * k;
-    aro.material.opacity = 0.65 + 0.2 * s + 0.15 * k;
-    aro.rotation.z += dt * 0.25;
+    if (aro){ aro.material.opacity = 0.65 + 0.2 * s + 0.15 * k; aro.rotation.z += dt * 0.25; }
 
     if (!reducir){
       for (let i = 0; i < N; i++){
