@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Collage de fotos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=Caveat:wght@600&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --wall:#d6d2c7; --blue:#3f3f45; --red:#2d2d31; --hand:"Caveat","Segoe Print","Comic Sans MS",cursive; }
+  * { box-sizing:border-box; }
+  html,body { height:100%; margin:0; }
+  body { background:var(--wall); color:var(--blue); font-family:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif; overflow:hidden; }
+  #viewport { position:fixed; inset:0; touch-action:none; cursor:grab; }
+  #viewport.dragging { cursor:grabbing; }
+  #stage { position:absolute; left:0; top:0; width:0; height:0; transform-origin:0 0; will-change:transform; }
+
+  .item { position:absolute; transform:translate(-50%,-50%) rotate(var(--r,0deg)); transition:left .8s ease, top .8s ease; animation:aparece .7s ease-out both; animation-delay:var(--d,0ms); cursor:zoom-in; }
+  @keyframes aparece { from { opacity:0; scale:.2; } to { opacity:1; scale:1; } }
+  .print { margin:0; background:#fff; padding:8px; box-shadow:0 6px 18px rgba(45,45,49,.28); }
+  .print img { display:block; background:#cdcabf; object-fit:cover; }
+  .item.nueva .print { outline:4px solid var(--red); outline-offset:6px; animation:resalta 4s ease-out forwards; }
+  @keyframes resalta { 0%,60% { outline-color:var(--red); } 100% { outline-color:transparent; } }
+  .postit { position:absolute; right:-26px; bottom:-30px; width:118px; height:118px; padding:10px; background:var(--pc,#ece3c4); box-shadow:0 5px 12px rgba(45,45,49,.3); transform:rotate(var(--pr,4deg)); overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; font-family:var(--hand); color:#2a2a2e; }
+  .postit p { margin:0; font-size:1.2rem; line-height:1.05; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
+  .postit small { font-size:.95rem; opacity:.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item.solo .postit { position:static; width:140px; height:140px; }
+
+  header { position:fixed; top:0; left:0; right:0; padding:calc(14px + env(safe-area-inset-top,0px)) 18px 14px; display:flex; align-items:baseline; gap:14px; pointer-events:none; background:linear-gradient(var(--wall),transparent); z-index:2; }
+  header h1 { margin:0; font-size:1.7rem; line-height:1; font-weight:700; letter-spacing:-.02em; color:var(--red); }
+  header h1 em { font-family:"Bodoni Moda","Didot","Times New Roman",serif; font-style:normal; font-weight:500; letter-spacing:0; color:var(--blue); font-size:1.15em; margin-left:.15em; }
+  header span { font-size:.9rem; font-weight:500; }
+  #btnAdmin { margin-left:auto; pointer-events:auto; align-self:center; padding:7px 14px; font-size:.85rem; }
+
+  .btn { font:inherit; font-weight:700; border:0; border-radius:999px; padding:11px 20px; cursor:pointer; background:rgba(45,45,49,.14); color:var(--blue); }
+  .btn:hover { background:rgba(45,45,49,.26); }
+  .btn.rojo { background:var(--red); color:#fff; }
+  .btn:disabled { opacity:.6; cursor:progress; }
+  button:focus-visible,input:focus-visible,textarea:focus-visible { outline:3px solid var(--blue); outline-offset:3px; }
+
+  .controls { position:fixed; right:16px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:8px; z-index:2; }
+  .controls button { width:42px; height:42px; padding:0; font-size:1.3rem; line-height:1; border-radius:50%; }
+  #btnSubir { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + env(safe-area-inset-bottom,0px)); font-size:1.05rem; padding:14px 26px; box-shadow:0 8px 24px rgba(45,45,49,.35); z-index:2; }
+  #estado { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(80px + env(safe-area-inset-bottom,0px)); max-width:90vw; background:var(--blue); color:#fff; padding:8px 14px; border-radius:10px; font-size:.92rem; display:none; z-index:3; }
+  #vacio { position:fixed; inset:0; display:none; place-items:center; text-align:center; padding:24px; pointer-events:none; font-size:1.2rem; }
+
+  dialog { border:0; border-radius:14px; padding:22px; width:min(92vw,400px); color:var(--blue); font-family:inherit; }
+  dialog::backdrop { background:rgba(40,40,44,.55); }
+  dialog h2 { margin:0 0 6px; font-size:1.2rem; }
+  dialog label { display:block; font-weight:500; font-size:.9rem; margin:14px 0 4px; }
+  dialog input, dialog textarea { width:100%; font:inherit; color:var(--blue); border:2px solid var(--blue); border-radius:8px; padding:9px; background:#fff; }
+  dialog textarea { height:88px; resize:none; font-family:var(--hand); font-size:1.3rem; line-height:1.1; }
+  .fila { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+  .ayuda { font-size:.8rem; opacity:.75; margin:4px 0 0; }
+  .colores { display:flex; gap:8px; margin-top:4px; }
+  .colores button { width:32px; height:32px; padding:0; border-radius:50%; border:3px solid transparent; background:var(--c); cursor:pointer; box-shadow:0 0 0 1px rgba(45,45,49,.35); }
+  .colores button.sel { border-color:var(--blue); }
+
+  #lb { position:fixed; inset:0; background:rgba(40,40,44,.93); display:none; place-items:center; z-index:10; cursor:zoom-out; padding:14px; overflow:auto; }
+  #lb.abierto { display:grid; }
+  .caja { display:flex; flex-direction:column; align-items:center; gap:12px; cursor:default; }
+  .caja img { max-width:92vw; max-height:68vh; box-shadow:0 10px 40px rgba(0,0,20,.5); }
+  #lbNota { background:#fff; color:#2a2a2e; font-family:var(--hand); font-size:1.5rem; line-height:1.1; padding:10px 16px; border-radius:6px; max-width:min(92vw,420px); text-align:center; word-break:break-word; }
+  #adminBox { background:#fff; padding:14px; border-radius:12px; width:min(92vw,420px); display:none; flex-direction:column; gap:10px; }
+  #adminBox textarea { width:100%; height:74px; border:2px solid var(--blue); border-radius:8px; padding:8px; font-family:var(--hand); font-size:1.3rem; color:var(--blue); resize:none; }
+  #adminBox .fila { margin:0; justify-content:space-between; }
+
+  @media (max-width:700px) {
+    header h1 { font-size:1.3rem; }
+    .controls { top:auto; bottom:calc(24px + env(safe-area-inset-bottom,0px)); right:12px; transform:none; }
+    #btnSubir { left:14px; transform:none; padding:13px 20px; }
+    #estado { left:14px; transform:none; }
+  }
+  @media (prefers-reduced-motion:reduce) { .item { animation:none; transition:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="titulo"></h1>
+  <span id="contador"></span>
+  <button class="btn" id="btnAdmin">Admin</button>
+</header>
+
+<div id="viewport"><div id="stage"></div></div>
+<div id="vacio">Aún no hay fotos.<br>Sube la primera con el botón de abajo.</div>
+
+<div class="controls">
+  <button class="btn" id="mas" aria-label="Acercar">+</button>
+  <button class="btn" id="menos" aria-label="Alejar">−</button>
+  <button class="btn" id="ajustar" aria-label="Ver todo" title="Ver todo">⤢</button>
+</div>
+
+<div id="estado" role="status"></div>
+<button class="btn rojo" id="btnSubir">Subir fotos o nota</button>
+
+<dialog id="dSubir">
+  <h2>Comparte con el grupo</h2>
+  <p class="ayuda">Puedes subir varias fotos, una nota o las dos cosas.</p>
+  <label for="archivos">Fotos</label>
+  <input id="archivos" type="file" accept="image/*" multiple>
+  <label for="nota">Nota (máx. 80 caracteres)</label>
+  <textarea id="nota" maxlength="80" placeholder="Escribe algo corto…"></textarea>
+  <label>Color del post-it</label>
+  <div class="colores" id="coloresNota"></div>
+  <p class="ayuda">Si subes varias fotos, la nota acompaña a la primera.</p>
+  <label for="autor">Tu nombre (opcional)</label>
+  <input id="autor" maxlength="24">
+  <div class="fila"><button class="btn" id="cancelar" type="button">Cancelar</button><button class="btn rojo" id="publicar" type="button">Publicar</button></div>
+</dialog>
+
+<dialog id="dAdmin">
+  <h2>Acceso de administrador</h2>
+  <label for="correo">Correo</label>
+  <input id="correo" type="email" autocomplete="username">
+  <label for="clave">Contraseña</label>
+  <input id="clave" type="password" autocomplete="current-password">
+  <div class="fila"><button class="btn" id="cancelarAdmin" type="button">Cancelar</button><button class="btn rojo" id="entrar" type="button">Entrar</button></div>
+</dialog>
+
+<div id="lb" aria-modal="true" role="dialog">
+  <div class="caja">
+    <img id="lbImg" alt="">
+    <div id="lbNota"></div>
+    <div id="adminBox">
+      <textarea id="notaEdit" maxlength="80" placeholder="Nota (vacía = sin nota)"></textarea>
+      <div class="colores" id="coloresEdit"></div>
+      <div class="fila"><button class="btn" id="eliminar" type="button">Eliminar</button><button class="btn rojo" id="guardar" type="button">Guardar nota</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIGURACIÓN ============ */
+const SUPABASE_URL = "https://qfwxfyykhujbpbzqgpwh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_cGlhooua2fnOthX4d2lT9g_W8HgPc7j";
+const TITULO_1 = "NAVI", TITULO_2 = ""; // título de arriba (la segunda parte va en serif azul)
+const BUCKET = "fotos", TABLA = "fotos";
+const MAX_LADO = 1200, MINIATURA = 360, MAX_NOTA = 80;
+const SEPARACION = 150;   // qué tan separadas quedan las fotos en la espiral
+/* ======================================= */
+
+const $ = (id) => document.getElementById(id);
+const stage = $("stage"), viewport = $("viewport");
+{ const h = $("titulo"), em = document.createElement("em");
+  h.append(TITULO_1); em.textContent = TITULO_2; h.append(em);
+  document.title = (TITULO_1 + " " + TITULO_2).trim(); }
+let token = null;
+try { token = sessionStorage.getItem("admin_token"); } catch {}
+const hdr = (extra = {}) => ({ apikey: SUPABASE_ANON_KEY, ...(token ? { Authorization: "Bearer " + token } : {}), ...extra });
+const pub = (path) => `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
+async function msgError(r) { try { const j = await r.json(); return j.message || j.msg || j.error_description || j.error || r.statusText; } catch { return r.statusText; } }
+
+let timer;
+function aviso(txt, ms) {
+  const el = $("estado"); el.textContent = txt; el.style.display = "block";
+  clearTimeout(timer); if (ms) timer = setTimeout(() => (el.style.display = "none"), ms);
+}
+
+/* ---------- Espiral: la primera foto al centro, las demás hacia afuera ---------- */
+let items = [], firma = "";
+const nodos = new Map();
+const COLORES = ["#ece3c4", "#d9b8b0", "#b8c4cc", "#c3cdb5", "#d9d9d4"]; // crema, rosa polvo, gris azulado, salvia, gris claro
+const hash = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
+function pos(i) {
+  if (i === 0) return [0, 0];
+  const r = SEPARACION * Math.sqrt(i + 3), a = i * 2.39996; // ángulo áureo
+  return [r * Math.cos(a), r * Math.sin(a)];
+}
+function crear(f) {
+  const d = document.createElement("div");
+  d.className = "item" + (f.path ? "" : " solo");
+  d.dataset.id = f.id;
+  if (f.path) {
+    const fig = document.createElement("figure"); fig.className = "print";
+    const img = new Image(); img.alt = "Foto del grupo"; img.decoding = "async"; img.loading = "lazy";
+    img.onerror = () => { if (!img.dataset.full) { img.dataset.full = 1; img.src = pub(f.path); } };
+    img.src = pub("t-" + f.path);
+    fig.appendChild(img); d.appendChild(fig);
+  }
+  const pc = document.createElement("div"); pc.className = "postit";
+  pc.innerHTML = "<p></p><small></small>"; d.appendChild(pc);
+  return d;
+}
+function render(modo) {
+  const vivos = new Set(items.map((f) => f.id));
+  for (const [id, n] of nodos) if (!vivos.has(id)) { n.remove(); nodos.delete(id); }
+  items.forEach((f, i) => {
+    let n = nodos.get(f.id);
+    if (!n) {
+      n = crear(f); nodos.set(f.id, n); stage.appendChild(n);
+      if (modo === "inicial") n.style.setProperty("--d", Math.min(i * 60, 4500) + "ms");
+      else { n.classList.add("nueva"); setTimeout(() => n.classList.remove("nueva"), 4500); }
+    }
+    const [x, y] = pos(i), h = hash(f.id);
+    n.style.left = x + "px"; n.style.top = y + "px";
+    n.style.zIndex = i + 1;
+    n.style.setProperty("--r", ((h % 50) / 10 - 2.5).toFixed(1) + "deg");
+    const img = n.querySelector("img");
+    if (img) {
+      const max = i === 0 ? 320 : 230, q = f.width && f.height ? f.width / f.height : 1;
+      const w = q >= 1 ? max : max * q;
+      img.style.width = w + "px"; img.style.height = w / q + "px";
+    }
+    const pc = n.querySelector(".postit");
+    pc.style.display = f.nota ? "flex" : "none";
+    pc.style.setProperty("--pc", COLORES.includes(f.color) ? f.color : COLORES[h % COLORES.length]);
+    pc.style.setProperty("--pr", ((h % 9) - 4) + "deg");
+    pc.querySelector("p").textContent = f.nota || "";
+    pc.querySelector("small").textContent = f.autor ? "— " + f.autor : "";
+  });
+  const n = items.length;
+  $("contador").textContent = n ? n + (n === 1 ? " publicación" : " publicaciones") : "";
+  $("vacio").style.display = n ? "none" : "grid";
+}
+async function listar() {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}?select=*&order=created_at.asc`, { headers: hdr() });
+  if (!r.ok) throw new Error(await msgError(r));
+  return r.json();
+}
+async function sincronizar(inicial) {
+  const lista = await listar();
+  const f = JSON.stringify(lista.map((x) => [x.id, x.nota, x.autor, x.color]));
+  if (f === firma) return;
+  firma = f; items = lista; render(inicial ? "inicial" : "nuevo");
+  if (inicial) ajustar();
+}
+
+/* ---------- Zoom y desplazamiento ---------- */
+let escala = 1, tx = 0, ty = 0;
+const MIN = 0.05, MAX = 4;
+const aplicar = () => (stage.style.transform = `translate(${tx}px, ${ty}px) scale(${escala})`);
+function zoomEn(cx, cy, k) {
+  const n = Math.min(MAX, Math.max(MIN, escala * k)); k = n / escala;
+  tx = cx - (cx - tx) * k; ty = cy - (cy - ty) * k; escala = n; aplicar();
+}
+function ajustar() {
+  const R = SEPARACION * Math.sqrt(items.length + 3) + 200;
+  escala = Math.min(1, Math.min(innerWidth, innerHeight) / (2 * R));
+  tx = innerWidth / 2; ty = innerHeight / 2; aplicar();
+}
+viewport.addEventListener("wheel", (e) => { e.preventDefault(); zoomEn(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+const punteros = new Map(); let distPrev = 0, movido = 0;
+viewport.addEventListener("pointerdown", (e) => {
+  punteros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (punteros.size === 1) movido = 0;
+  if (punteros.size === 2) { const [a, b] = [...punteros.values()]; distPrev = Math.hypot(a.x - b.x, a.y - b.y); }
+  viewport.classList.add("dragging");
+});
+addEventListener("pointermove", (e) => {
+  const p = punteros.get(e.pointerId); if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y;
+  if (punteros.size === 1) { tx += dx; ty += dy; movido += Math.abs(dx) + Math.abs(dy); aplicar(); }
+  p.x = e.clientX; p.y = e.clientY;
+  if (punteros.size === 2) {
+    const [a, b] = [...punteros.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (distPrev) zoomEn((a.x + b.x) / 2, (a.y + b.y) / 2, d / distPrev);
+    distPrev = d; movido = 99;
+  }
+});
+const soltar = (e) => { punteros.delete(e.pointerId); if (punteros.size < 2) distPrev = 0; if (!punteros.size) viewport.classList.remove("dragging"); };
+addEventListener("pointerup", soltar); addEventListener("pointercancel", soltar);
+$("mas").onclick = () => zoomEn(innerWidth / 2, innerHeight / 2, 1.4);
+$("menos").onclick = () => zoomEn(innerWidth / 2, innerHeight / 2, 1 / 1.4);
+$("ajustar").onclick = ajustar;
+
+/* ---------- Ver en grande / administrar ---------- */
+const lb = $("lb"); let actual = null;
+stage.addEventListener("click", (e) => {
+  if (movido > 6) return;
+  const n = e.target.closest(".item"); if (!n) return;
+  actual = items.find((f) => f.id === n.dataset.id); if (!actual) return;
+  $("lbImg").style.display = actual.path ? "block" : "none";
+  if (actual.path) $("lbImg").src = pub(actual.path);
+  const t = [actual.nota, actual.autor ? "— " + actual.autor : ""].filter(Boolean).join("  ");
+  $("lbNota").textContent = t; $("lbNota").style.display = t ? "block" : "none";
+  $("adminBox").style.display = token ? "flex" : "none";
+  $("notaEdit").value = actual.nota || ""; marcar("coloresEdit", actual.color);
+  lb.classList.add("abierto");
+});
+lb.addEventListener("click", (e) => { if (e.target === lb) lb.classList.remove("abierto"); });
+addEventListener("keydown", (e) => { if (e.key === "Escape") lb.classList.remove("abierto"); });
+
+async function comprobar(r) {
+  if (!r.ok) {
+    const m = await msgError(r);
+    if (/jwt|expired/i.test(m)) { salir(); throw new Error("La sesión de administrador caducó. Entra de nuevo."); }
+    throw new Error(m);
+  }
+  const j = await r.json();
+  if (!j.length) {
+    let mail = "desconocido";
+    try { mail = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).email || mail; } catch {}
+    throw new Error(`Supabase no lo permitió. Sesión: ${mail}. Ese correo debe coincidir exactamente con el de las políticas.`);
+  }
+}
+$("guardar").onclick = async () => {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}?id=eq.${actual.id}`, { method: "PATCH", headers: hdr({ "Content-Type": "application/json", Prefer: "return=representation" }), body: JSON.stringify({ nota: $("notaEdit").value.trim().slice(0, MAX_NOTA) || null, color: $("coloresEdit").dataset.val || null }) });
+    await comprobar(r); lb.classList.remove("abierto"); aviso("Nota guardada", 2500); sincronizar(false);
+  } catch (e) { aviso(e.message, 6000); }
+};
+$("eliminar").onclick = async () => {
+  if (!confirm("¿Eliminar esta publicación? No se puede deshacer.")) return;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}?id=eq.${actual.id}`, { method: "DELETE", headers: hdr({ Prefer: "return=representation" }) });
+    await comprobar(r);
+    if (actual.path) fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}`, { method: "DELETE", headers: hdr({ "Content-Type": "application/json" }), body: JSON.stringify({ prefixes: [actual.path, "t-" + actual.path] }) }).catch(() => {});
+    lb.classList.remove("abierto"); aviso("Eliminada", 2500); sincronizar(false);
+  } catch (e) { aviso(e.message, 6000); }
+};
+
+/* ---------- Acceso de administrador ---------- */
+function pintarAdmin() { $("btnAdmin").textContent = token ? "Salir (admin)" : "Admin"; pintarSubida(); }
+function salir() { token = null; try { sessionStorage.removeItem("admin_token"); } catch {} pintarAdmin(); }
+$("btnAdmin").onclick = () => (token ? (salir(), aviso("Saliste del modo administrador", 2500)) : $("dAdmin").showModal());
+$("cancelarAdmin").onclick = () => $("dAdmin").close();
+$("entrar").onclick = async () => {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, { method: "POST", headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ email: $("correo").value.trim(), password: $("clave").value }) });
+    if (!r.ok) throw new Error(await msgError(r));
+    token = (await r.json()).access_token;
+    try { sessionStorage.setItem("admin_token", token); } catch {}
+    $("clave").value = ""; $("dAdmin").close(); pintarAdmin(); aviso("Modo administrador activo: toca una publicación para editarla o eliminarla", 5000);
+  } catch (e) { aviso("No se pudo entrar: " + e.message, 6000); }
+};
+
+/* ---------- Selector de color del post-it ---------- */
+function selector(id) {
+  const c = $(id);
+  COLORES.forEach((col) => {
+    const b = document.createElement("button"); b.type = "button"; b.style.setProperty("--c", col); b.setAttribute("aria-label", "Color " + col);
+    b.onclick = () => marcar(id, col); c.appendChild(b);
+  });
+}
+function marcar(id, val) {
+  const c = $(id); c.dataset.val = val || "";
+  [...c.children].forEach((b, i) => b.classList.toggle("sel", COLORES[i] === val));
+}
+selector("coloresNota"); selector("coloresEdit"); marcar("coloresNota", COLORES[0]);
+
+/* ---------- Subida ---------- */
+function reducir(file, lado, calidad) {
+  return new Promise((ok, mal) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const r = Math.min(1, lado / Math.max(img.width, img.height));
+      const w = Math.round(img.width * r), h = Math.round(img.height * r), c = document.createElement("canvas");
+      c.width = w; c.height = h; c.getContext("2d").drawImage(img, 0, 0, w, h); URL.revokeObjectURL(url);
+      c.toBlob((b) => (b ? ok({ blob: b, w, h }) : mal(new Error("No se pudo procesar"))), "image/jpeg", calidad);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); mal(new Error("Formato no compatible")); };
+    img.src = url;
+  });
+}
+async function subirArchivo(ruta, blob) {
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${ruta}`, { method: "POST", headers: hdr({ "Content-Type": "image/jpeg" }), body: blob });
+  if (!r.ok) throw new Error(await msgError(r));
+}
+async function insertar(fila) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLA}`, { method: "POST", headers: hdr({ "Content-Type": "application/json" }), body: JSON.stringify(fila) });
+  if (!r.ok) throw new Error(await msgError(r));
+}
+$("btnSubir").onclick = () => $("dSubir").showModal();
+$("cancelar").onclick = () => $("dSubir").close();
+$("publicar").onclick = async () => {
+  const archivos = [...$("archivos").files], nota = $("nota").value.trim().slice(0, MAX_NOTA), autor = $("autor").value.trim().slice(0, 24);
+  if (!archivos.length && !nota) { aviso("Elige una foto o escribe una nota", 3000); return; }
+  $("publicar").disabled = true; $("dSubir").close();
+  let ok = 0, fallos = 0, ultimo = "";
+  const trabajos = archivos.length ? archivos : [null];
+  for (let i = 0; i < trabajos.length; i++) {
+    aviso(`Subiendo ${i + 1} de ${trabajos.length}…`);
+    try {
+      const fila = { autor: autor || null, nota: i === 0 ? nota || null : null, color: i === 0 && nota ? $("coloresNota").dataset.val || null : null };
+      if (trabajos[i]) {
+        const g = await reducir(trabajos[i], MAX_LADO, 0.82), m = await reducir(trabajos[i], MINIATURA, 0.75);
+        const path = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
+        await subirArchivo(path, g.blob); await subirArchivo("t-" + path, m.blob);
+        Object.assign(fila, { path, width: g.w, height: g.h });
+      }
+      await insertar(fila); ok++;
+    } catch (e) { console.error(e); fallos++; ultimo = e.message; }
+  }
+  $("publicar").disabled = false; $("archivos").value = ""; $("nota").value = "";
+  aviso(fallos ? `${ok} publicadas, ${fallos} con error: ${ultimo}` : `Listo: ${ok} ${ok === 1 ? "publicación" : "publicaciones"}`, fallos ? 12000 : 4000);
+  sincronizar(false).catch(() => {});
+};
+
+/* ---------- Ventana de tiempo para subir (se define en la tabla "config") ---------- */
+let ventana = null;
+async function revisarVentana() {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/config?select=abre,cierra&id=eq.1`, { headers: hdr() });
+    if (r.ok) { const [c] = await r.json(); if (c) ventana = { abre: new Date(c.abre), cierra: new Date(c.cierra) }; }
+  } catch {}
+  pintarSubida();
+}
+function pintarSubida() {
+  const b = $("btnSubir"); if (!ventana) return;
+  const ahora = new Date(), f = (d) => d.toLocaleString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  if (!token && ahora < ventana.abre) { b.disabled = true; b.textContent = "Las subidas abren el " + f(ventana.abre); }
+  else if (!token && ahora > ventana.cierra) { b.disabled = true; b.textContent = "Las subidas ya cerraron"; }
+  else { b.disabled = false; b.textContent = "Subir fotos o nota"; }
+}
+revisarVentana(); setInterval(revisarVentana, 60000);
+
+pintarAdmin();
+sincronizar(true).catch((e) => aviso("No se pudieron cargar las fotos: " + e.message, 8000));
+setInterval(() => sincronizar(false).catch(() => {}), 8000);
+</script>
+</body>
+</html>
